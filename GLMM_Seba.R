@@ -113,10 +113,18 @@ m5_dec_split_inter_ri <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*
                       #Los resultados de este modelo entregan un efecto significativo en 
                  #reward, agent, grupo, effort, reward*agent, agent*grupo, agent*grupo*effort
 
+m40_dec_split_inter_rs_agent  <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward + agent|sub)
+                                      ,data=alldata.sc,
+                                      family=binomial,
+                                      control = glmerControl(optimizer = "bobyqa",
+                                                             optCtrl=list(maxfun=2e5)))
+
+
 
 
 modelo_comp_dec <- anova(m1_dec_full_inter_rs, m2_dec_full_inter_ri, m3_dec_split_inter_rs, m4_dec_split_inter_rs_agent, m5_dec_split_inter_ri)
 #Al comparar los modelos, gana el m3_dec_split_inter_rs 
+modelo_comp_dec <- anova(m1_dec_full_inter_rs, m3_dec_split_inter_rs, m4_dec_split_inter_rs_agent, m40_dec_split_inter_rs_agent)
 
 
 # 

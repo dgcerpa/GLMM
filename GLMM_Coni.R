@@ -56,7 +56,7 @@ alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
 #ri = random intercep
 
 # Este modelo observa todas la interacciones, con ramdon effect
-m1_dec_full_inter_rs <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward|sub)
+c <- glmer(decision ~ c.reward*c.effort*grupo + (1 + c.effort + c.reward|sub)
                               ,data=alldata.sc,
                               family=binomial,
                               control = glmerControl(optimizer = "bobyqa",
@@ -148,16 +148,16 @@ niveles_esfuerzo <- list(c.effort = c(-1.3412537, -0.4459018, 0.4494501, 1.34480
 
 
 # Calculamos las medias marginales
-em_posthoc_m3_decision <- emmeans(m3_dec_split_inter_rs, 
+em_posthoc_m1_decision <- emmeans(m1_dec_full_inter_rs, 
                                   ~  grupo*agent | c.effort, 
                                   at = niveles_esfuerzo,
                                   type = "response") #este formato compara por niveles de esfuerzo 
 
-pairs(em_posthoc_m3_decision)
+pairs(em_posthoc_m1_decision)
 
 
 #Segundo forma de realizar el post hoc comparando pendientes 
-slopes_effort_m3_decision <- emtrends(m3_dec_split_inter_rs,
+slopes_effort_m3_decision <- emtrends(m1_dec_full_inter_rs,
                                       ~  agent * grupo,
                                       var = "c.effort")#este formato compara por pendiente 
 pairs(slopes_effort_m3_decision)
@@ -167,7 +167,7 @@ pairs(slopes_effort_m3_decision)
 
 # Comparación de niveles de Esfuerzo por Agente
 # Objetivo: Ver diferencias entre niveles de esfuerzo DENTRO de cada agente.
-effort_contrast_agent <- emmeans(m3_dec_split_inter_rs, 
+effort_contrast_agent <- emmeans(m1_dec_full_inter_rs, 
                                  pairwise ~ c.effort | agent, 
                                  at = niveles_esfuerzo, 
                                  type = "response", # Para obtener probabilidades en el output
@@ -188,7 +188,7 @@ summary(concon)
 
 # Comparación de Agentes por nivel de Esfuerzo 
 # Ver si hay diferencias significativas entre Self vs Other en cada punto de esfuerzo específico.
-agent_contrast_effort <- emmeans(m3_dec_split_inter_rs, 
+agent_contrast_effort <- emmeans(m1_dec_full_inter_rs, 
                                  pairwise ~ agent | c.effort, 
                                  at = niveles_esfuerzo, 
                                  type = "response",
@@ -200,7 +200,7 @@ summary(agent_contrast_effort)
 # Comparación de Grupos por Agente
 # Ver si el Grupo Control difiere del Vulnerable mirando a cada agente por separado
 # (Promediando a través de los niveles de esfuerzo, a menos que especifiques 'at').
-grupo_contrast <- emmeans(m3_dec_split_inter_rs, 
+grupo_contrast <- emmeans(m1_dec_full_inter_rs, 
                           pairwise ~ grupo | agent,
                           at = niveles_esfuerzo,
                           type = "response",
