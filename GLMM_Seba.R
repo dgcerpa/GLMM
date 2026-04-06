@@ -1,6 +1,6 @@
 
 
-
+# Importar Librerías
 
 library(tidyverse)
 library(readxl)
@@ -13,9 +13,12 @@ library(performance)
 
 
 
+# Importar datos
+
+glm <- read.csv("datos_long_glmm_seba.csv", header = T)
 
 
-glm <- read.csv("datos_long_glmm.csv", header = T)
+# Limpieza de datos
 
 
 glm_filtred <- glm[glm$zeros_OTHER <= 25, ] 
@@ -23,7 +26,6 @@ glm_filtred <- glm_filtred[glm_filtred$zeros_SELF <=25, ]
 glm_filtred <- subset(glm_filtred, decision!= 2)
 
 
-#Change the tipe of the variable
 
 str(glm)
 
@@ -55,6 +57,7 @@ alldata.sc <- alldata
 alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
 
 
+
 ### GLMM decision ####
    #mx = numero del modelo
    #dec = decision
@@ -62,6 +65,7 @@ alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
    #split_inter = interacciones separadas 
    #rs = randon slope
    #ri = random intercep
+
 
 # Este modelo observa todas la interacciones, con ramdon effect
 m1_dec_full_inter_rs <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward|sub)
@@ -77,8 +81,7 @@ m1_dec_full_inter_rs <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.
 m2_dec_full_inter_ri <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1|sub)
                        ,data = alldata.sc,
                        family = binomial,
-                       control = glmerControl(optimizer = "bobyqa",
-                                              optCtrl = list(maxfun=2e5)))
+                       control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=2e5)))
                         #Los resultados de este modelo entregan un efecto significativo en 
                   #reward, agent, effort, grupo, agent*grupo, agent*effort*grupo
 
@@ -88,8 +91,7 @@ m2_dec_full_inter_ri <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1|sub)
 m3_dec_split_inter_rs <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward|sub)
                             ,data=alldata.sc,
                             family=binomial,
-                            control = glmerControl(optimizer = "bobyqa",
-                                                   optCtrl=list(maxfun=2e5)))
+                            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
                        #Los resultados de este mdelo entregan un efecto significativo en 
@@ -98,8 +100,7 @@ m3_dec_split_inter_rs <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*
 m4_dec_split_inter_rs_agent  <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward + agent|sub)
                           ,data=alldata.sc,
                           family=binomial,
-                          control = glmerControl(optimizer = "bobyqa",
-                                                 optCtrl=list(maxfun=2e5)))
+                          control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
                       #Los resutlados de este modelo entregan un efecto singificativo en 
               #c.reward, agent, c.reward:agent, agent:c.effort y agent:grupo:c.effort
 
@@ -108,47 +109,78 @@ m4_dec_split_inter_rs_agent  <- glmer(decision ~ c.reward*agent*grupo + c.effort
 m5_dec_split_inter_ri <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub)
                                   ,data=alldata.sc,
                                   family=binomial,
-                                  control = glmerControl(optimizer = "bobyqa",
-                                                         optCtrl=list(maxfun=2e5)))
+                                  control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
                       #Los resultados de este modelo entregan un efecto significativo en 
                  #reward, agent, grupo, effort, reward*agent, agent*grupo, agent*grupo*effort
 
-m40_dec_split_inter_rs_agent  <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward + agent|sub)
+
+
+# Nuevos modelos
+m6  <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward + agent|sub)
                                       ,data=alldata.sc,
                                       family=binomial,
-                                      control = glmerControl(optimizer = "bobyqa",
-                                                             optCtrl=list(maxfun=2e5)))
+                                      control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
+
+
+
+m7 <- glmer(decision ~ c.reward*c.effort*agent + (1+ c.reward + c.effort + agent|sub),
+                       data=alldata.sc, 
+                       family=binomial,
+                       control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
 
 
 
 
-modelo_comp_dec <- anova(m1_dec_full_inter_rs, m2_dec_full_inter_ri, m3_dec_split_inter_rs, m4_dec_split_inter_rs_agent, m5_dec_split_inter_ri)
-#Al comparar los modelos, gana el m3_dec_split_inter_rs 
-modelo_comp_dec <- anova(m1_dec_full_inter_rs, m3_dec_split_inter_rs, m4_dec_split_inter_rs_agent, m40_dec_split_inter_rs_agent)
 
 
-# 
-# plot(ggpredict(m4_dec_split_inter_rs_agent, terms = c("c.effort", "agent", "grupo"))) +
-#   ggtitle("Modelo 4 simplificado SIN grupo Effort × Agent") +
-#   ylab("Probabilidad predicha de decisión") +
-#   xlab("Nivel de esfuerzo (c.effort)") +
-#   theme_minimal()
 
 
-plot(ggpredict(m3_dec_split_inter_rs, terms = c("c.effort", "agent", "grupo"))) +
-  ggtitle("Modelo 3") +
+m8 <- glmer(decision ~ c.reward*c.effort*agent*grupo + (1+ c.reward + c.effort + agent|sub),
+            data=alldata.sc, 
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
+
+
+m9 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1+ c.reward + c.effort|sub),
+            data=alldata.sc, 
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
+
+
+
+
+
+
+
+
+m10 <- glmer(decision ~ c.reward*c.effort*agent*grupo + (1|sub),
+            data=alldata.sc, 
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
+
+
+m11 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
+            data=alldata.sc, 
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
+
+
+
+# Comparación de modelos
+modelo_comp_dec <- anova(m1_dec_full_inter_rs, m2_dec_full_inter_ri, m3_dec_split_inter_rs, m4_dec_split_inter_rs_agent, m5_dec_split_inter_ri, m6, m7, m8, m9, m10, m11)
+
+
+
+
+
+# Gráfico del modelo ganador (AIC)
+plot(ggpredict(m4_dec_split_inter_rs_agent, terms = c("c.effort", "agent", "grupo"))) +
+  ggtitle("Modelo 4") +
   ylab("Probabilidad predicha de decisión") +
   xlab("Nivel de esfuerzo (c.effort)") +
   scale_colour_discrete(labels = c("0" = "Self", "1" = "Other"), name = "Agente") +
   facet_wrap(~facet, labeller = labeller(facet = c("0" = "Control", "1" = "Experimental"))) +
   theme_minimal()
-
-
-
-
-
-
-
 
 
 
@@ -164,26 +196,26 @@ niveles_esfuerzo <- list(c.effort = c(-1.3412537, -0.4459018, 0.4494501, 1.34480
 
 
 # Calculamos las medias marginales
-em_posthoc_m3_decision <- emmeans(m3_dec_split_inter_rs, 
+em_posthoc_m4_decision <- emmeans(m4_dec_split_inter_rs_agent, 
                                   ~  grupo*agent | c.effort, 
                                   at = niveles_esfuerzo,
                                   type = "response") #este formato compara por niveles de esfuerzo 
 
-pairs(em_posthoc_m3_decision)
+pairs(em_posthoc_m4_decision)
 
 
 #Segundo forma de realizar el post hoc comparando pendientes 
-slopes_effort_m3_decision <- emtrends(m3_dec_split_inter_rs,
+slopes_effort_m4_decision <- emtrends(m4_dec_split_inter_rs_agent,
                                       ~  agent * grupo,
                                       var = "c.effort")#este formato compara por pendiente 
-pairs(slopes_effort_m3_decision)
+pairs(slopes_effort_m4_decision)
 
 
 
 
 # Comparación de niveles de Esfuerzo por Agente
 # Objetivo: Ver diferencias entre niveles de esfuerzo DENTRO de cada agente.
-effort_contrast_agent <- emmeans(m3_dec_split_inter_rs, 
+effort_contrast_agent <- emmeans(m4_dec_split_inter_rs_agent, 
                                  pairwise ~ c.effort | agent, 
                                  at = niveles_esfuerzo, 
                                  type = "response", # Para obtener probabilidades en el output
@@ -204,7 +236,7 @@ summary(concon)
 
 # Comparación de Agentes por nivel de Esfuerzo 
 # Ver si hay diferencias significativas entre Self vs Other en cada punto de esfuerzo específico.
-agent_contrast_effort <- emmeans(m3_dec_split_inter_rs, 
+agent_contrast_effort <- emmeans(m4_dec_split_inter_rs_agent, 
                                  pairwise ~ agent | c.effort, 
                                  at = niveles_esfuerzo, 
                                  type = "response",
@@ -216,7 +248,7 @@ summary(agent_contrast_effort)
 # Comparación de Grupos por Agente
 # Ver si el Grupo Control difiere del Vulnerable mirando a cada agente por separado
 # (Promediando a través de los niveles de esfuerzo, a menos que especifiques 'at').
-grupo_contrast <- emmeans(m3_dec_split_inter_rs, 
+grupo_contrast <- emmeans(m4_dec_split_inter_rs_agent, 
                           pairwise ~ grupo | agent,
                           at = niveles_esfuerzo,
                           type = "response",
@@ -231,10 +263,10 @@ summary(grupo_contrast)
 
 #graficos DECISION
 
-df_decision_m3 <- as.data.frame(em_posthoc_m3_decision)
+df_decision_m4 <- as.data.frame(em_posthoc_m4_decision)
 
 ggplot(
-  df_decision_m3,
+  df_decision_m4,
   aes(
     x = c.effort,
     y = prob,
@@ -367,13 +399,6 @@ plot(ggpredict(m2_succ_split_inter_ri, terms = c("c.effort", "agent", "grupo")))
 
 
 
-# #Grafico de los modelos success 
-# ggplot(ggpredict(m4_succ_full_inter_ri, c("grupo","agent")
-#           + theme_classic(base_size = 14)
-#           )) %>% plot()
-
-
-
 
 
 
@@ -458,173 +483,6 @@ ggplot(df_success_m2, aes(x = factor(agent), y = prob, fill = grupo)) +
     theme_classic(base_size = 14)
   
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Se hace el mismo graficos por grupo 
-
-
-library(dplyr)
-#GRUPO CONTROL
-p0 <- ggplot(
-  df_decision_m3 %>% filter(grupo == "0"), # Filtramos aquí
-  aes(
-    x = c.effort,
-    y = prob,
-    color = agent, 
-    linetype = agent
-  )
-) +
-  geom_line(size = 1) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), width = 0.05) +
-  scale_color_manual(values = c("0" = "#1F77B4", "1" = "#CD3333")) + # Ajusta colores según prefieras
-  labs(title = "Descuento por esfuerzo CONTROL", x = "Nivel de esfuerzo", y = "Probabilidad") +
-  theme_light()
-
-# Visualizar 
-plot(p0)
-
-
-#GRUPO VULENRABLE
-p1 <- ggplot(
-  df_decision_m3 %>% filter(grupo == "1"), # Filtramos aquí
-  aes(
-    x = c.effort,
-    y = prob,
-    color = agent, 
-    linetype = agent
-  )
-) +
-  geom_line(size = 1) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), width = 0.05) +
-  scale_color_manual(values = c("0" = "#1F77B4", "1" = "#CD3333")) + # Ajusta colores según prefieras
-  labs(title = "Descuento por esfuerzo VULNERABLE", x = "Nivel de esfuerzo", y = "Probabilidad") +
-  theme_light()
-plot(p1)
-
-
-str(df_decision_m3)
-
-
-
-
-# Comparación de Agentes por nivel de Esfuerzo 
-
-data_agent_effort <- as.data.frame(agent_contrast_effort$emmeans)
-
-ggplot(
-  data_agent_effort,
-  aes(
-    x = c.effort,
-    y = prob,
-    color = agent,
-    linetype = agent,
-    group = agent
-  )
-) +
-  geom_line(size = 1.2) +
-  geom_point(size = 3) +
-  geom_errorbar(
-    aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    width = 0.05
-  ) +
-  labs(
-    x = " Nivel de esfuerzo",
-    y = "Probabilidad predicha de decisión",
-    color = "Agente",
-    linetype = "Agente"
-  ) +
-  theme_light(base_size = 14)
-
-
-
-
-
-# Ver si el Grupo Control difiere del Vulnerable mirando a cada agente por separado
-
-df_emmeans_grupo <- as.data.frame(grupo_contrast$emmeans)
-
-ggplot(
-  df_emmeans_grupo,
-  aes(
-    x = grupo,
-    y = prob,
-    color = agent,
-    linetype = agent,
-    group = agent
-  )
-) +
-  geom_line(size = 1.2) +
-  geom_point(size = 3) +
-  geom_errorbar(
-    aes(ymin = asymp.LCL, ymax = asymp.UCL),
-    width = 0.05
-  ) +
-  labs(
-    x = "Grupo",
-    y = "Probabilidad predicha de decisión",
-    color = "Agente",
-    linetype = "Agente"
-  ) +
-  theme_light(base_size = 14)
 
 
 

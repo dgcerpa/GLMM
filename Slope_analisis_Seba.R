@@ -16,7 +16,7 @@ library(performance)
 
 
 
-glm <- read.csv("datos_long_glmm.csv", header = T)
+glm <- read.csv("datos_long_glmm_seba.csv", header = T)
 
 #Se elimina a todo participante que tenga una omision mayor a 25 tanto en other como self
 glm_filtred <- glm[glm$zeros_OTHER <= 25, ] 
@@ -84,7 +84,7 @@ lmvul <- glmer(decision ~ c.reward*agent + c.effort*agent + (1 + c.effort + c.re
                control = glmerControl(optimizer = "bobyqa",
                                       optCtrl=list(maxfun=2e5)))
 
-plot(ggpredict(lmctl, terms = c("c.reward", "agent"))) +
+plot(ggpredict(lmvul, terms = c("c.reward", "agent"))) +
   ggtitle("Modelo 4.1 simplificado SIN grupo Effort × Agent") +
   ylab("Probabilidad predicha de decisión") +
   xlab("Nivel de esfuerzo (c.effort)") +
