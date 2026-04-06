@@ -59,116 +59,66 @@ alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
 
 
 ### GLMM decision ####
-   #mx = numero del modelo
-   #dec = decision
-   #full_inter = todas las interacciones
-   #split_inter = interacciones separadas 
-   #rs = randon slope
-   #ri = random intercep
+
+m1 <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
-# Este modelo observa todas la interacciones, con ramdon effect
-m1_dec_full_inter_rs <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward|sub)
-                  ,data=alldata.sc,
-                  family=binomial,
-                  control = glmerControl(optimizer = "bobyqa",
-                                         optCtrl=list(maxfun=2e5)))
-                         #Los resultados de este modelo entregan un efecto significativo en 
-                         #reward, agent, effort*agent*grupo
-    
-
-# Este modelo observa todas la interacciones, sin ramdon effect
-m2_dec_full_inter_ri <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1|sub)
-                       ,data = alldata.sc,
-                       family = binomial,
-                       control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=2e5)))
-                        #Los resultados de este modelo entregan un efecto significativo en 
-                  #reward, agent, effort, grupo, agent*grupo, agent*effort*grupo
+m2 <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1|sub),
+            data = alldata.sc,
+            family = binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=2e5)))
 
 
-
-#  Este modelo separa las interacciones por reward y effort 
-m3_dec_split_inter_rs <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward|sub)
-                            ,data=alldata.sc,
-                            family=binomial,
-                            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
+m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
-                       #Los resultados de este mdelo entregan un efecto significativo en 
-                  #reward, agent, grupo y agent*grupo*effort
-
-m4_dec_split_inter_rs_agent  <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward + agent|sub)
-                          ,data=alldata.sc,
-                          family=binomial,
-                          control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
-                      #Los resutlados de este modelo entregan un efecto singificativo en 
-              #c.reward, agent, c.reward:agent, agent:c.effort y agent:grupo:c.effort
-
-           
-#   Este modelo separa las interacciones por reward y effort, es sin efectos ramdons
-m5_dec_split_inter_ri <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub)
-                                  ,data=alldata.sc,
-                                  family=binomial,
-                                  control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
-                      #Los resultados de este modelo entregan un efecto significativo en 
-                 #reward, agent, grupo, effort, reward*agent, agent*grupo, agent*grupo*effort
+m4  <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward + agent|sub),
+             data=alldata.sc,
+             family=binomial,
+             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
+m5 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
-# Nuevos modelos
-m6  <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward + agent|sub)
-                                      ,data=alldata.sc,
-                                      family=binomial,
-                                      control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
+m6  <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward + agent|sub),
+             data=alldata.sc,
+             family=binomial,
+             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
 m7 <- glmer(decision ~ c.reward*c.effort*agent + (1+ c.reward + c.effort + agent|sub),
-                       data=alldata.sc, 
-                       family=binomial,
-                       control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
-
-
-
-
-
-
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
 
 
 m8 <- glmer(decision ~ c.reward*c.effort*agent*grupo + (1+ c.reward + c.effort + agent|sub),
-            data=alldata.sc, 
+            data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
 
 
-m9 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1+ c.reward + c.effort|sub),
-            data=alldata.sc, 
+m9 <- glmer(decision ~ c.reward*agent*grupo + c.effort*grupo +  (1 + c.effort + c.reward|sub),
+            data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
 
 
-
-
-
-
-
-
-m10 <- glmer(decision ~ c.reward*c.effort*agent*grupo + (1|sub),
-            data=alldata.sc, 
-            family=binomial,
-            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
-
-
-m11 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
-            data=alldata.sc, 
-            family=binomial,
-            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
 
 
 
 # Comparación de modelos
-modelo_comp_dec <- anova(m1_dec_full_inter_rs, m2_dec_full_inter_ri, m3_dec_split_inter_rs, m4_dec_split_inter_rs_agent, m5_dec_split_inter_ri, m6, m7, m8, m9, m10, m11)
-
+modelo_comp_dec <- anova(m1, m2, m3, m4, m5, m6, m7, m8, m9)
 
 
 
@@ -207,7 +157,7 @@ pairs(em_posthoc_m4_decision)
 #Segundo forma de realizar el post hoc comparando pendientes 
 slopes_effort_m4_decision <- emtrends(m4_dec_split_inter_rs_agent,
                                       ~  agent * grupo,
-                                      var = "c.effort")#este formato compara por pendiente 
+                                      var = "c.effort") #este formato compara por pendiente 
 pairs(slopes_effort_m4_decision)
 
 
@@ -248,7 +198,7 @@ summary(agent_contrast_effort)
 # Comparación de Grupos por Agente
 # Ver si el Grupo Control difiere del Vulnerable mirando a cada agente por separado
 # (Promediando a través de los niveles de esfuerzo, a menos que especifiques 'at').
-grupo_contrast <- emmeans(m4_dec_split_inter_rs_agent, 
+grupo_contrast <- emmeans(m1, 
                           pairwise ~ grupo | agent,
                           at = niveles_esfuerzo,
                           type = "response",
