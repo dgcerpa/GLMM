@@ -1,6 +1,6 @@
 
 
-
+# Importar Librerías
 
 library(tidyverse)
 library(readxl)
@@ -8,22 +8,23 @@ library(lme4)
 library(readxl)
 library(car)
 library(ggeffects)
+library(ggcorrplot)
+library(corrplot)
 library(emmeans)
 library(performance)
 
 
 
-
+# Importar datos
 
 glm <- read.csv("datos_long_models_coni.csv", header = T)
 
 
-glm_filtred <- glm[glm$zeros_OTHER <= 25, ] 
-glm_filtred <- glm_filtred[glm_filtred$zeros_SELF <=25, ]
-glm_filtred <- subset(glm_filtred, decision!= 2)
+# Limpieza de datos
+
+glm_filtred <- subset(glm, decision!= 2)
 
 
-#Change the tipe of the variable
 
 str(glm)
 
@@ -47,94 +48,85 @@ numcols <- grep("^c\\.",names(alldata))
 alldata.sc <- alldata
 alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
 
+
+
+
 ### GLMM decision ####
-#mx = numero del modelo
-#dec = decision
-#full_inter = todas las interacciones
-#split_inter = interacciones separadas 
-#rs = randon slope
-#ri = random intercep
 
-# Este modelo observa todas la interacciones, con ramdon effect
-c <- glmer(decision ~ c.reward*c.effort*grupo + (1 + c.effort + c.reward|sub)
-                              ,data=alldata.sc,
-                              family=binomial,
-                              control = glmerControl(optimizer = "bobyqa",
-                                                     optCtrl=list(maxfun=2e5)))
-#Los resultados de este modelo entregan un efecto significativo en 
-#reward, agent, effort*agent*grupo
+m1 <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
-# Este modelo observa todas la interacciones, sin ramdon effect
-m2_dec_full_inter_ri <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1|sub)
-                              ,data = alldata.sc,
-                              family = binomial,
-                              control = glmerControl(optimizer = "bobyqa",
-                                                     optCtrl = list(maxfun=2e5)))
-#Los resultados de este modelo entregan un efecto significativo en 
-#reward, agent, effort, grupo, agent*grupo, agent*effort*grupo
+m2 <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1|sub),
+            data = alldata.sc,
+            family = binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=2e5)))
 
 
-
-#  Este modelo separa las interacciones por reward y effort 
-m3_dec_split_inter_rs <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward|sub)
-                               ,data=alldata.sc,
-                               family=binomial,
-                               control = glmerControl(optimizer = "bobyqa",
-                                                      optCtrl=list(maxfun=2e5)))
+m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
-#Los resultados de este mdelo entregan un efecto significativo en 
-#reward, agent, grupo y agent*grupo*effort
-
-m4_dec_split_inter_rs_agent  <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward + agent|sub)
-                                      ,data=alldata.sc,
-                                      family=binomial,
-                                      control = glmerControl(optimizer = "bobyqa",
-                                                             optCtrl=list(maxfun=2e5)))
-#Los resutlados de este modelo entregan un efecto singificativo en 
-#c.reward, agent, c.reward:agent, agent:c.effort y agent:grupo:c.effort
+m4  <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward + agent|sub),
+             data=alldata.sc,
+             family=binomial,
+             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
-#   Este modelo separa las interacciones por reward y effort, es sin efectos ramdons
-m5_dec_split_inter_ri <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub)
-                               ,data=alldata.sc,
-                               family=binomial,
-                               control = glmerControl(optimizer = "bobyqa",
-                                                      optCtrl=list(maxfun=2e5)))
-#Los resultados de este modelo entregan un efecto significativo en 
-#reward, agent, grupo, effort, reward*agent, agent*grupo, agent*grupo*effort
+m5 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
+
+
+m6  <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward + agent|sub),
+             data=alldata.sc,
+             family=binomial,
+             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
+
+
+m7 <- glmer(decision ~ c.reward*c.effort*agent + (1+ c.reward + c.effort + agent|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
+
+
+m8 <- glmer(decision ~ c.reward*c.effort*agent*grupo + (1+ c.reward + c.effort + agent|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
+
+
+m9 <- glmer(decision ~ c.reward*agent*grupo + c.effort*grupo +  (1 + c.effort + c.reward|sub),
+            data=alldata.sc,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
 
 
 
-modelo_comp_dec <- anova(m1_dec_full_inter_rs, m2_dec_full_inter_ri, m3_dec_split_inter_rs, m4_dec_split_inter_rs_agent, m5_dec_split_inter_ri)
-#Al comparar los modelos, gana el m3_dec_split_inter_rs 
 
 
-# 
-# plot(ggpredict(m4_dec_split_inter_rs_agent, terms = c("c.effort", "agent", "grupo"))) +
-#   ggtitle("Modelo 4 simplificado SIN grupo Effort × Agent") +
-#   ylab("Probabilidad predicha de decisión") +
-#   xlab("Nivel de esfuerzo (c.effort)") +
-#   theme_minimal()
+# Comparación de modelos
+modelo_comp_dec <- anova(m1, m2, m3, m4, m5, m6, m7, m8, m9)
 
 
-plot(ggpredict(m3_dec_split_inter_rs, terms = c("c.effort", "agent", "grupo"))) +
-  ggtitle("Modelo 3") +
+
+
+
+
+
+# Gráfico del modelo ganador (AIC)
+plot(ggpredict(m4, terms = c("c.effort", "agent", "grupo"))) +
+  ggtitle("Modelo 4") +
   ylab("Probabilidad predicha de decisión") +
   xlab("Nivel de esfuerzo (c.effort)") +
   scale_colour_discrete(labels = c("0" = "Self", "1" = "Other"), name = "Agente") +
   facet_wrap(~facet, labeller = labeller(facet = c("0" = "Control", "1" = "Experimental"))) +
   theme_minimal()
-
-
-
-
-
-
-
-
-
 
 
 
@@ -148,26 +140,26 @@ niveles_esfuerzo <- list(c.effort = c(-1.3412537, -0.4459018, 0.4494501, 1.34480
 
 
 # Calculamos las medias marginales
-em_posthoc_m1_decision <- emmeans(m1_dec_full_inter_rs, 
+em_posthoc_m4_decision <- emmeans(m4_dec_split_inter_rs_agent, 
                                   ~  grupo*agent | c.effort, 
                                   at = niveles_esfuerzo,
                                   type = "response") #este formato compara por niveles de esfuerzo 
 
-pairs(em_posthoc_m1_decision)
+pairs(em_posthoc_m4_decision)
 
 
 #Segundo forma de realizar el post hoc comparando pendientes 
-slopes_effort_m3_decision <- emtrends(m1_dec_full_inter_rs,
+slopes_effort_m4_decision <- emtrends(m4_dec_split_inter_rs_agent,
                                       ~  agent * grupo,
-                                      var = "c.effort")#este formato compara por pendiente 
-pairs(slopes_effort_m3_decision)
+                                      var = "c.effort") #este formato compara por pendiente 
+pairs(slopes_effort_m4_decision)
 
 
 
 
 # Comparación de niveles de Esfuerzo por Agente
 # Objetivo: Ver diferencias entre niveles de esfuerzo DENTRO de cada agente.
-effort_contrast_agent <- emmeans(m1_dec_full_inter_rs, 
+effort_contrast_agent <- emmeans(m4_dec_split_inter_rs_agent, 
                                  pairwise ~ c.effort | agent, 
                                  at = niveles_esfuerzo, 
                                  type = "response", # Para obtener probabilidades en el output
@@ -188,7 +180,7 @@ summary(concon)
 
 # Comparación de Agentes por nivel de Esfuerzo 
 # Ver si hay diferencias significativas entre Self vs Other en cada punto de esfuerzo específico.
-agent_contrast_effort <- emmeans(m1_dec_full_inter_rs, 
+agent_contrast_effort <- emmeans(m4_dec_split_inter_rs_agent, 
                                  pairwise ~ agent | c.effort, 
                                  at = niveles_esfuerzo, 
                                  type = "response",
@@ -200,7 +192,7 @@ summary(agent_contrast_effort)
 # Comparación de Grupos por Agente
 # Ver si el Grupo Control difiere del Vulnerable mirando a cada agente por separado
 # (Promediando a través de los niveles de esfuerzo, a menos que especifiques 'at').
-grupo_contrast <- emmeans(m1_dec_full_inter_rs, 
+grupo_contrast <- emmeans(m1, 
                           pairwise ~ grupo | agent,
                           at = niveles_esfuerzo,
                           type = "response",
@@ -215,10 +207,10 @@ summary(grupo_contrast)
 
 #graficos DECISION
 
-df_decision_m3 <- as.data.frame(em_posthoc_m3_decision)
+df_decision_m4 <- as.data.frame(em_posthoc_m4_decision)
 
 ggplot(
-  df_decision_m3,
+  df_decision_m4,
   aes(
     x = c.effort,
     y = prob,
@@ -272,6 +264,302 @@ ggplot(
     strip.text = element_blank(),     # Borra el texto (0 y 1)
     strip.background = element_blank() # Borra el recuadro gris
   )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export_3d <- alldata.sc %>%
+  filter(decision != 2) %>%
+  select(sub, decision, c.reward, c.effort, agent, grupo)
+
+write.csv(export_3d, "data_for_3d_matlab.csv", row.names = FALSE)
+cat("Guardado: data_for_3d_matlab.csv\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#estandariza las variables de interes" 
+numcols <- grep("^c\\.",names(alldata))
+alldata.sc <- alldata
+alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
+
+
+#data slope vulnerable 
+data_control <- subset(alldata.sc, grupo!="1")
+
+#data slope control
+data_vulnerable <- subset(alldata.sc, grupo!="0")  
+
+
+
+#data slope self
+data_other<- subset(alldata.sc, agent!="0")
+
+
+#data slope other 
+data_self<- subset(alldata.sc, agent!="1")
+
+
+
+#modelos 
+
+
+#modelo de vulnerabilidad 
+lmcontrol <- glmer(decision ~ c.reward*agent*c.effort + (1 + c.effort + c.reward|sub),
+                   data=data_control,
+                   family=binomial,
+                   control = glmerControl(optimizer = "bobyqa",
+                                          optCtrl=list(maxfun=2e5)))
+
+
+#modelo grupo control 
+lmvulnerable <- glmer(decision ~ c.reward*agent*c.effort + (1 + c.effort + c.reward|sub),
+                      data=data_vulnerable,
+                      family=binomial,
+                      control = glmerControl(optimizer = "bobyqa",
+                                             optCtrl=list(maxfun=2e5)))
+
+
+
+#modelo de self
+lmself<-glmer(decision ~ c.reward*grupo*c.effort + (1 + c.effort + c.reward|sub),
+              data=data_self,
+              family=binomial,
+              control = glmerControl(optimizer = "bobyqa",
+                                     optCtrl=list(maxfun=2e5)))
+
+
+
+#modelo de other
+lmother <-glmer(decision ~ c.reward*grupo*c.effort + (1 + c.effort + c.reward|sub),
+                data=data_other,
+                family=binomial,
+                control = glmerControl(optimizer = "bobyqa",
+                                       optCtrl=list(maxfun=2e5)))
+
+
+
+
+plot(ggpredict(lmother, terms = c("c.effort", "c.reward [-1, 0, 1]", "grupo"))) +
+  ggtitle("Modelo Other") +
+  ylab("Probabilidad predicha de decisión") +
+  xlab("Nivel de esfuerzo (c.effort)") +
+  scale_colour_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward"
+  ) +
+  scale_fill_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward"
+  ) +
+  facet_wrap(~facet, labeller = labeller(facet = c("0" = "Control", "1" = "Experimental"))) +
+  theme_minimal()
+
+
+
+
+
+
+
+
+#extraer slopes de self, other, control y vulnerable 
+indvself <- coef(lmself)
+indvother <- coef(lmother)
+indctl <- coef(lmcontrol)
+indvvul <- coef(lmvulnerable)
+
+
+
+
+#extraer data frame
+df_other <- indvother[[1]]
+df_self <- indvself[[1]]
+df_ctl <- indctl[[1]]
+df_vul <- indvvul[[1]]
+
+
+
+
+
+#pasar eje x como columna para identificar a los sujetos 
+indvself_2 <- rownames_to_column(df_self, var = "sub")
+head(indvself_2)
+
+
+
+
+#Renomabrar variables de serf
+colnames(indvself_2) <-c("sub", "Intercept_self", "c.reward_self", "grupo1_self", "c.effort_self", "c.reward:grupo1_self",
+                         "grupo1:c.effort_self")
+
+
+
+#pasar eje x como columna para identificar a los sujetos 
+indvother_2 <- rownames_to_column(df_other, var = "sub")
+
+#Renombrar variables de other
+colnames(indvother_2) <-c("sub", "Intercept_other", "c.reward_other", "grupo1_other", "c.effort_other", "c.reward:grupo1_other",
+                          "grupo1:c.effort_other")
+
+#pasar eje x como columna para identificar a los sujetos 
+indvvul_2 <- rownames_to_column(df_vul, var = "sub")
+#Renombrar variables vulnerabilidad 
+colnames(indvvul_2) <- c("sub","Intercept_vul", "c.reward_vul", "agent_vul", "c.effort_vul",
+                         " c.reward:agent1_vul", "agent1:c.effort_vul")
+
+#pasar eje x como columna para identificar a los sujetos 
+indctl_2 <- rownames_to_column(df_ctl, var = "sub")
+#Renombrar variables vulnerabilidad 
+colnames(indctl_2) <- c("sub","Intercept_ctl", "c.reward_ctl", "agent_ctl", "c.effort_ctl",
+                        " c.reward:agent1_ctl", "agent1:c.effort_ctl")
+
+head(indvvul_2)
+#JUNTAR AMBAS DATAS 
+slope <- indvother_2 %>%
+  left_join(indvself_2,by = "sub") #data self
+
+slope <- slope %>%
+  left_join(indctl_2, by = "sub")#data de los slopes del grupo control
+
+slope <- slope %>%
+  left_join(indvvul_2, by = "sub")#data grupo vulnetables
+
+slope_v2 <- slope %>%
+  select(sub,c.reward_other,c.effort_other,c.reward_self,c.effort_self) # seleccionamos effort y reward para sacar diferenicas 
+
+mg <- slope_v2 %>%
+  mutate(
+    DIF_effort = c.effort_other - c.effort_self, 
+    DIF_reward = c.reward_other - c.reward_self,
+    
+  ) %>%
+  select(sub,DIF_effort,DIF_reward) 
+
+slope <- slope %>%
+  left_join(mg,by = "sub") # juntamos datas
+
+
+
+
+#Pasar "sub" a int para juntar base de datos de huepe
+slope$sub <- as.integer(slope$sub)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -350,25 +638,6 @@ plot(ggpredict(m2_succ_split_inter_ri, terms = c("c.effort", "agent", "grupo")))
 
 
 
-
-# #Grafico de los modelos success 
-# ggplot(ggpredict(m4_succ_full_inter_ri, c("grupo","agent")
-#           + theme_classic(base_size = 14)
-#           )) %>% plot()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #POST HOC modelo succes#### 
 em_posthoc_m2_succes <- emmeans(m2_succ_split_inter_ri, 
                                 ~ grupo * agent,
@@ -440,6 +709,13 @@ ggplot(df_success_m2, aes(x = factor(agent), y = prob, fill = grupo)) +
   ) +
   
   theme_classic(base_size = 14)
+
+
+
+
+
+
+
 
 
 
