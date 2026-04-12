@@ -24,10 +24,6 @@ glm <- read.csv("datos_long_models_coni.csv", header = T)
 
 glm_filtred <- subset(glm, decision!= 2)
 
-
-
-str(glm)
-
 alldata <- data.frame(as.factor(glm_filtred$sub),
                       as.factor(glm_filtred$decision),
                       as.factor(glm_filtred$grupo),
@@ -37,16 +33,25 @@ alldata <- data.frame(as.factor(glm_filtred$sub),
                       as.numeric(as.character(glm_filtred$zeros_SELF)),
                       as.numeric(as.character(glm_filtred$reward)),
                       as.numeric(as.character(glm_filtred$effort)),
-                      as.numeric(as.character(glm_filtred$trial))
-)
+                      as.numeric(as.character(glm_filtred$trial)))
 
 colnames(alldata)<-c("sub", "decision", "grupo", "agent", "success", 
                      "c.zeros_other", "c.zeros_self", "c.reward", "c.effort", "c.trial")
 
-
 numcols <- grep("^c\\.",names(alldata))
 alldata.sc <- alldata
 alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
+
+
+# Guardar datos para gráfico 3D MATLAB
+export_3d <- alldata.sc %>%
+  filter(decision != 2) %>%
+  select(sub, decision, c.reward, c.effort, agent, grupo)
+
+write.csv(export_3d, "data_for_3d_matlab.csv", row.names = FALSE)
+cat("Guardado: data_for_3d_matlab.csv\n")
+
+
 
 
 
@@ -107,16 +112,8 @@ m9 <- glmer(decision ~ c.reward*agent*grupo + c.effort*grupo +  (1 + c.effort + 
             control = glmerControl(optimizer = "bobyqa",optCtrl=list(maxfun=2e5)))
 
 
-
-
-
 # Comparación de modelos
 modelo_comp_dec <- anova(m1, m2, m3, m4, m5, m6, m7, m8, m9)
-
-
-
-
-
 
 
 # Gráfico del modelo ganador (AIC)
@@ -127,7 +124,6 @@ plot(ggpredict(m4, terms = c("c.effort", "agent", "grupo"))) +
   scale_colour_discrete(labels = c("0" = "Self", "1" = "Other"), name = "Agente") +
   facet_wrap(~facet, labeller = labeller(facet = c("0" = "Control", "1" = "Experimental"))) +
   theme_minimal()
-
 
 
 
@@ -198,9 +194,6 @@ grupo_contrast <- emmeans(m1,
                           type = "response",
                           pbkrtest.limit = 5012, lmerTest.limit = 5021)
 summary(grupo_contrast)
-
-
-
 
 
 
@@ -298,32 +291,6 @@ ggplot(
 
 
 
-export_3d <- alldata.sc %>%
-  filter(decision != 2) %>%
-  select(sub, decision, c.reward, c.effort, agent, grupo)
-
-write.csv(export_3d, "data_for_3d_matlab.csv", row.names = FALSE)
-cat("Guardado: data_for_3d_matlab.csv\n")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -385,10 +352,10 @@ data_self<- subset(alldata.sc, agent!="1")
 
 
 
-#modelos 
+# Modelos 
 
 
-#modelo de vulnerabilidad 
+# Modelo de vulnerabilidad 
 lmcontrol <- glmer(decision ~ c.reward*agent*c.effort + (1 + c.effort + c.reward|sub),
                    data=data_control,
                    family=binomial,
@@ -396,7 +363,7 @@ lmcontrol <- glmer(decision ~ c.reward*agent*c.effort + (1 + c.effort + c.reward
                                           optCtrl=list(maxfun=2e5)))
 
 
-#modelo grupo control 
+# Modelo grupo control 
 lmvulnerable <- glmer(decision ~ c.reward*agent*c.effort + (1 + c.effort + c.reward|sub),
                       data=data_vulnerable,
                       family=binomial,
@@ -404,8 +371,7 @@ lmvulnerable <- glmer(decision ~ c.reward*agent*c.effort + (1 + c.effort + c.rew
                                              optCtrl=list(maxfun=2e5)))
 
 
-
-#modelo de self
+# Modelo de self
 lmself<-glmer(decision ~ c.reward*grupo*c.effort + (1 + c.effort + c.reward|sub),
               data=data_self,
               family=binomial,
@@ -414,7 +380,7 @@ lmself<-glmer(decision ~ c.reward*grupo*c.effort + (1 + c.effort + c.reward|sub)
 
 
 
-#modelo de other
+# Modelo de other
 lmother <-glmer(decision ~ c.reward*grupo*c.effort + (1 + c.effort + c.reward|sub),
                 data=data_other,
                 family=binomial,
@@ -441,11 +407,6 @@ plot(ggpredict(lmother, terms = c("c.effort", "c.reward [-1, 0, 1]", "grupo"))) 
 
 
 
-
-
-
-
-
 #extraer slopes de self, other, control y vulnerable 
 indvself <- coef(lmself)
 indvother <- coef(lmother)
@@ -453,15 +414,11 @@ indctl <- coef(lmcontrol)
 indvvul <- coef(lmvulnerable)
 
 
-
-
 #extraer data frame
 df_other <- indvother[[1]]
 df_self <- indvself[[1]]
 df_ctl <- indctl[[1]]
 df_vul <- indvvul[[1]]
-
-
 
 
 
@@ -523,8 +480,6 @@ slope <- slope %>%
   left_join(mg,by = "sub") # juntamos datas
 
 
-
-
 #Pasar "sub" a int para juntar base de datos de huepe
 slope$sub <- as.integer(slope$sub)
 
@@ -579,49 +534,33 @@ slope$sub <- as.integer(slope$sub)
 alldata.sc_a <- subset(alldata.sc, decision!= 0)
 
 
-#Este modelo observa las interacciones en su conjunto,
-m1_succ_split_inter_rs <-glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1 + c.effort + c.reward|sub)
+m1 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1 + c.effort + c.reward|sub)
                                ,data=alldata.sc_a,
                                family=binomial,
                                control = glmerControl(optimizer = "bobyqa",
                                                       optCtrl=list(maxfun=2e5)))
-#Los resultados de este modelo entregan efecto en agente y effort
 
-
-
-#En este modelo se separan las interacciones por reward y effort, además de que no se tienen efectos ramdon
-m2_succ_split_inter_ri <-glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1|sub)
+m2 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1|sub)
                                ,data=alldata.sc_a,
                                family=binomial,
                                control = glmerControl(optimizer = "bobyqa",
                                                       optCtrl=list(maxfun=2e5)))
-#Los resultados de este entregan un efecto en agente, effort, agente*grupo
 
-
-
-#En este modelo se separan las interacciones por reward y effort, además de que no se tienen efectos ramdon
-m3_succ_full_inter_rs <-glmer(success ~ c.reward*agent*c.effort*grupo + (1 + c.reward + c.effort|sub)
+m3 <- glmer(success ~ c.reward*agent*c.effort*grupo + (1 + c.reward + c.effort|sub)
                               ,data=alldata.sc_a,
                               family=binomial,
                               control = glmerControl(optimizer = "bobyqa",
                                                      optCtrl=list(maxfun=2e5)))
-#Los resultados de este modelo entregan un efecto en agente, effort, reward*effort, agente*grupo
-
-
-#Este modelo observa las interacciones en su conjunto, no presenta efectos ramdon
-m4_succ_full_inter_ri <-glmer(success ~ c.reward*agent*c.effort*grupo + (1|sub)
+m4 <- glmer(success ~ c.reward*agent*c.effort*grupo + (1|sub)
                               ,data=alldata.sc_a,
                               family=binomial,
                               control = glmerControl(optimizer = "bobyqa",
                                                      optCtrl=list(maxfun=2e5)))
-#Los resultados del modelo entrega interacciones en effort, grupo, agent*grupo
-#reward*effort*grupo
 
+# Modelo comparison
 
+model_comp_success <- anova(m1, m2, m3, m4)
 
-
-model_comp_success <- anova(m1_succ_split_inter_rs, m2_succ_split_inter_ri, m3_succ_full_inter_rs, m4_succ_full_inter_ri)
-#Al comparar los modelos, gana el m1_succ_split_inter_rs
 
 
 plot(ggpredict(m2_succ_split_inter_ri, terms = c("c.effort", "agent", "grupo"))) +
@@ -709,12 +648,6 @@ ggplot(df_success_m2, aes(x = factor(agent), y = prob, fill = grupo)) +
   ) +
   
   theme_classic(base_size = 14)
-
-
-
-
-
-
 
 
 
