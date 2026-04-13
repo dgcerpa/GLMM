@@ -393,6 +393,18 @@ plot(p) +
 
 
 
+summary(m_exp_self)
+summary(m_exp_other)
+
+summary(m_ctrl_self)
+summary(m_ctrl_other)
+
+
+
+
+
+
+
 
 
 
