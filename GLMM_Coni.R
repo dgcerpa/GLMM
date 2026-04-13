@@ -43,6 +43,8 @@ alldata.sc <- alldata
 alldata.sc[,numcols] <- scale(alldata.sc[,numcols])
 
 
+
+
 # Guardar datos para gráfico 3D MATLAB
 export_3d <- alldata.sc %>%
   filter(decision != 2) %>%
@@ -291,8 +293,99 @@ ggplot(
 
 
 
+# dentro del grupo experimental
+data_exp_self  <- alldata.sc %>% filter(grupo == 1, agent == 0)
+data_exp_other <- alldata.sc %>% filter(grupo == 1, agent == 1)
+
+m_exp_self <- glmer(decision ~ c.reward * c.effort + (1 + c.effort + c.reward | sub),
+                    data = data_exp_self, family = binomial,
+                    control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
+
+plot(ggpredict(m_exp_self, terms = c("c.effort", "c.reward [-1, 0, 1]"))) +
+  ggtitle("Experimental - Self") +
+  ylab("Probabilidad predicha de decisión") +
+  xlab("Nivel de esfuerzo (c.effort)") +
+  scale_colour_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward") +
+  theme_minimal()
 
 
+
+
+m_exp_other <- glmer(decision ~ c.reward * c.effort + (1 + c.effort + c.reward | sub),
+                     data = data_exp_other, family = binomial,
+                     control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
+
+
+plot(ggpredict(m_exp_other, terms = c("c.effort", "c.reward [-1, 0, 1]"))) +
+  ggtitle("Experimental - Other") +
+  ylab("Probabilidad predicha de decisión") +
+  xlab("Nivel de esfuerzo (c.effort)") +
+  scale_colour_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward") +
+  theme_minimal()
+
+
+# Lo mismo para control
+data_ctrl_self  <- alldata.sc %>% filter(grupo == 0, agent == 0)
+data_ctrl_other <- alldata.sc %>% filter(grupo == 0, agent == 1)
+
+m_ctrl_self <- glmer(decision ~ c.reward * c.effort + (1 + c.effort + c.reward | sub),
+                     data = data_ctrl_self, family = binomial,
+                     control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
+
+
+plot(ggpredict(m_ctrl_self, terms = c("c.effort", "c.reward [-1, 0, 1]"))) +
+  ggtitle("Control - Self") +
+  ylab("Probabilidad predicha de decisión") +
+  xlab("Nivel de esfuerzo (c.effort)") +
+  scale_colour_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward") +
+  theme_minimal()
+
+
+m_ctrl_other <- glmer(decision ~ c.reward * c.effort + (1 + c.effort + c.reward | sub),
+                      data = data_ctrl_other, family = binomial,
+                      control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
+
+
+plot(ggpredict(m_ctrl_other, terms = c("c.effort", "c.reward [-1, 0, 1]"))) +
+  ggtitle("Control - Other") +
+  ylab("Probabilidad predicha de decisión") +
+  xlab("Nivel de esfuerzo (c.effort)") +
+  scale_colour_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward") +
+  theme_minimal()
+
+
+
+
+
+
+p <- ggpredict(m1, terms = c("c.effort", "c.reward [-1, 0, 1]", "agent", "grupo"))
+
+plot(p) +
+  ggtitle("Interacción de 4 vías: Effort × Reward × Agent × Grupo") +
+  ylab("Probabilidad predicha de decisión") +
+  xlab("Nivel de esfuerzo (c.effort)") +
+  scale_colour_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward"
+  ) +
+  scale_fill_discrete(
+    labels = c("-1" = "Reward bajo", "0" = "Reward medio", "1" = "Reward alto"),
+    name = "Reward"
+  ) +
+  facet_grid(facet ~ panel, 
+             labeller = labeller(
+               panel = c("0" = "Control", "1" = "Experimental"),
+               facet = c("0" = "Self", "1" = "Other")
+             )) +
+  theme_minimal()
 
 
 
