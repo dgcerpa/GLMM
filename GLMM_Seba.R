@@ -17,7 +17,7 @@ library(performance)
 
 # Importar datos
 
-glm <- read.csv("datos_long_glmm_seba.csv", header = T)
+glm <- read.csv("Datos/datos_long_glmm_seba.csv", header = T)
 
 
 # Limpieza de datos
@@ -138,12 +138,8 @@ plot(ggpredict(m3, terms = c("c.effort", "agent", "grupo"))) +
   theme_minimal()
 
 
-
-
-
 summary(m1)
 summary(m3)
-
 
 
 
