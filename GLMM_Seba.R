@@ -214,7 +214,7 @@ summary(grupo_contrast)
 
 
 
-z<-emtrends(m3, ~ grupo | agent,
+z<-emtrends(m1, ~ grupo | agent,
             var = "c.effort")
 
 
@@ -224,7 +224,7 @@ pairs(z, adjust = "fdr")
 
 
 
-z2<-emtrends(m3, ~ agent | grupo,
+z2<-emtrends(m1, ~ agent | grupo,
              var = "c.effort")
 
 summary(z2)
@@ -296,6 +296,80 @@ ggplot(
     strip.text = element_blank(),     # Borra el texto (0 y 1)
     strip.background = element_blank() # Borra el recuadro gris
   )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+data.self<- subset(alldata, agent!="1")
+data.other<- subset(alldata, agent!="0")
+
+
+
+numcols <- grep("^c\\.",names(data.other))
+data.other.sc <- data.other
+data.other.sc[,numcols] <- scale(data.other.sc[,numcols])
+
+
+
+numcols <- grep("^c\\.",names(data.self))
+data.self.sc <- data.self
+data.self.sc[,numcols] <- scale(data.self.sc[,numcols])
+
+
+
+lmself_rs.sc<-glmer(decision ~ c.reward*grupo + c.effort*grupo + (1+c.reward + c.effort|sub),
+                    data=data.self.sc, 
+                    family=binomial,
+                    control = glmerControl(optimizer = "bobyqa",
+                                           optCtrl=list(maxfun=2e5)))
+
+
+lmother_rs.sc<-glmer(decision ~ c.reward*grupo + c.effort*grupo + (1+c.reward + c.effort|sub),
+                     data=data.other.sc, 
+                     family=binomial,
+                     control = glmerControl(optimizer = "bobyqa",
+                                            optCtrl=list(maxfun=2e5)))
+
+
+
+indvself <- coef(lmself_rs.sc)
+indvother <- coef(lmother_rs.sc)
+
+
+
+
+
+
+
 
 
 
@@ -567,7 +641,7 @@ model_comp_success <- anova(m1, m2, m3, m4)
 
 
 
-plot(ggpredict(m2_succ_split_inter_ri, terms = c("c.effort", "agent", "grupo"))) +
+plot(ggpredict(m4, terms = c("c.effort", "agent", "grupo"))) +
   ggtitle("Modelo 2") +
   ylab("Probabilidad predicha de decisión") +
   xlab("Nivel de esfuerzo (c.effort)") +
@@ -582,11 +656,17 @@ plot(ggpredict(m2_succ_split_inter_ri, terms = c("c.effort", "agent", "grupo")))
 
 
 #POST HOC modelo succes#### 
-em_posthoc_m2_succes <- emmeans(m2_succ_split_inter_ri, 
-                                ~ grupo * agent,
+em_posthoc_m2_succes <- emmeans(m2, 
+                                ~ grupo | agent,
                                 type = "response")
 
 pairs(em_posthoc_m2_succes)
+
+em_posthoc_m3_succes <- emmeans(m2, 
+                                ~ agent | grupo,
+                                type = "response")
+
+pairs(em_posthoc_m3_succes)
 
 
 slopes_success_m2 <- emtrends(m2_succ_split_inter_ri,
