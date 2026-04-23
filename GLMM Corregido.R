@@ -62,8 +62,7 @@ write.csv(alldata.sc, "Datos/datos_long_filtrados.csv")
 
 
 
-##
-
+## Eliminar omisiones 
 
 alldata.sc <- read.csv("Datos/datos_long_filtrados.csv", header = T)
 
@@ -159,76 +158,10 @@ summary(m3)
 
 
 
-### POST HOC DECISON####
 
 
-#Se crea una lista con los valores de effort
-niveles_esfuerzo <- list(c.effort = c(-1.3412537, -0.4459018, 0.4494501, 1.3448020))
-
-
-# Calculamos las medias marginales
-m3_post_hoc_effort <- emmeans(m3, ~  grupo*agent | c.effort,
-                              at = niveles_esfuerzo,
-                              type = "response") #este formato compara por niveles de esfuerzo 
-
-pairs(m3_post_hoc_effort)
-
-
-#Segundo forma de realizar el post hoc comparando pendientes 
-slopes_effort_m3 <- emtrends(m3,~  agent * grupo,
-                             var = "c.effort") #este formato compara por pendiente 
-pairs(slopes_effort_m3)
-
-
-
-
-# Comparación de niveles de Esfuerzo por Agente
-# Objetivo: Ver diferencias entre niveles de esfuerzo DENTRO de cada agente.
-effort_contrast_agent <- emmeans(m3, 
-                                 pairwise ~ c.effort | agent, 
-                                 at = niveles_esfuerzo, 
-                                 type = "response", # Para obtener probabilidades en el output
-                                 pbkrtest.limit = 5012, lmerTest.limit = 5021)
-
-summary(effort_contrast_agent)
-
-
-# Contraste de Interacción de Tendencias 
-# Evaluar si la FORMA (tendencia lineal/cuadrática) de la curva de esfuerzo
-# es diferente entre Self y Other.
-concon <- contrast(effort_contrast_agent[[1]], 
-                   interaction = c("poly", "consec"), 
-                   by = NULL) 
-
-summary(concon)
-
-
-# Comparación de Agentes por nivel de Esfuerzo 
-# Ver si hay diferencias significativas entre Self vs Other en cada punto de esfuerzo específico.
-agent_contrast_effort <- emmeans(m3, 
-                                 pairwise ~ agent | c.effort, 
-                                 at = niveles_esfuerzo, 
-                                 type = "response",
-                                 pbkrtest.limit = 5012, lmerTest.limit = 5021)
-
-summary(agent_contrast_effort)
-
-
-# Comparación de Grupos por Agente
-# Ver si el Grupo Control difiere del Vulnerable mirando a cada agente por separado
-# (Promediando a través de los niveles de esfuerzo, a menos que especifiques 'at').
-grupo_contrast <- emmeans(m3, 
-                          pairwise ~ grupo | agent,
-                          at = niveles_esfuerzo,
-                          type = "response",
-                          pbkrtest.limit = 5012, lmerTest.limit = 5021)
-summary(grupo_contrast)
-
-
-
-
-
-
+###################
+# Post-Hoc
 
 z<-emtrends(m1, ~ grupo | agent,
             var = "c.effort")
@@ -256,10 +189,10 @@ pairs(z2, adjust = "fdr")
 
 
 ####
+# Extraer slopes de esfuerzo
 
-
-data.self<- subset(alldata, agent!="1")
-data.other<- subset(alldata, agent!="0")
+data.self<- subset(alldata.sc, agent!="1")
+data.other<- subset(alldata.sc, agent!="0")
 
 
 
@@ -296,6 +229,47 @@ indvother <- coef(lmother_rs.sc)
 
 
 
+
+indv_dataset <- data.frame(
+  sub          = rownames(indvself$sub),
+  reward_self  = indvself$sub$c.reward,
+  effort_self  = indvself$sub$c.effort,
+  reward_other = indvother$sub$c.reward,
+  effort_other = indvother$sub$c.effort
+)
+
+indv_dataset$diff_effort <- indv_dataset$effort_other - indv_dataset$effort_self
+indv_dataset$diff_reward <- indv_dataset$reward_other - indv_dataset$reward_self
+
+
+write.csv(indv_dataset, "post_hoc.csv", row.names = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+## Juntar datasets
+
+pasar <- read.csv("Datos/pasar_a_diego_v2.csv")
+pasar <- pasar[, -c(1, (ncol(pasar)-5):ncol(pasar))]
+
+post_hoc <- read.csv("Datos/post_hoc.csv")
+
+params <- read_excel("Datos/params_2k1b_all_families.xlsx") %>%
+  select(sub = subject_id, p_2k1b_k_self, p_2k1b_k_other, p_2k1b_beta, p_2k1b_diff_k)
+
+dataset_completo <- pasar %>%
+  left_join(post_hoc, by = "sub") %>%
+  left_join(params, by = "sub")
+
+
+write.csv(dataset_completo, "dataset_full.csv", row.names = FALSE)
 
 
 
