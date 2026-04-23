@@ -1,12 +1,11 @@
 
 
 ## Regresiones múltiples
-## diff_effort y effort_other como VD y la empatía (cuestionario IRI) como VI
-## 
+## diff_effort y effort_other como VD y la interocepción (cuestionario MAIA) como VI
+##
 ## Modelos
-##   M1 = IRI total
-##   M2 = 4 subescalas (Fantasia, TomaPerspectiva, PreocEmpatica, IncomodidadPers)
-##   M3 = 2 compuestos: (Fantasia + TomaPerspectiva) y (PreocEmp + IncomodidadPers)
+##   M1 = MAIA total
+##   M2 = 8 subescalas MAIA
 
 
 ## Librerías
@@ -15,6 +14,9 @@ library(tidyverse)
 library(car)        # vif()
 library(broom)      # tidy() / glance()
 library(performance) # check_model() opcional
+library(ggplot2)
+library(ggeffects)
+
 
 #########################
 ## Data
@@ -44,12 +46,12 @@ df_mod <- df %>%
 ###################################
 ## Modelo completo (diff_effort) sin interacción de grupo
 
-## Modelo 1: IRI total
+## Modelo 1: MAIA total
 m1 <- lm(diff_effort ~ MAIA_DIRt, data = df_mod)
 print(summary(m1))
 
 
-## Modelo 2: 4 subescalas IRI
+## Modelo 2: 8 subescalas MAIA
 m2 <- lm(diff_effort ~ MAIA_Percibir_DIRd + MAIA_AusenciaDistraccion_DIRd +
            MAIA_AusenciaPreocupacion_DIRd + MAIA_RegulacionAtencion_DIRd +
            MAIA_ConcienciaEmocional_DIRd + MAIA_Autorregulacion_DIRd +
@@ -62,7 +64,7 @@ print(summary(m2))
 ###################################
 ## Modelo completo (diff_effort) con interacción de grupo
 
-## Modelo 1: IRI total
+## Modelo 1: MAIA total
 m1 <- lm(diff_effort ~ MAIA_DIRt * grupo, data = df_mod)
 print(summary(m1))
 
@@ -75,8 +77,7 @@ plot(ggpredict(m1, terms = c("MAIA_DIRt", "grupo"))) +
   theme_minimal()
 
 
-
-## Modelo 2: 4 subescalas IRI
+## Modelo 2: 8 subescalas MAIA
 m2 <- lm(diff_effort ~ MAIA_Percibir_DIRd * grupo + MAIA_AusenciaDistraccion_DIRd * grupo +
            MAIA_AusenciaPreocupacion_DIRd * grupo + MAIA_RegulacionAtencion_DIRd * grupo +
            MAIA_ConcienciaEmocional_DIRd * grupo + MAIA_Autorregulacion_DIRd * grupo +
@@ -87,16 +88,15 @@ print(summary(m2))
 
 
 
-
 ###################################
 ## Modelo completo (effort_other) sin interacción de grupo
 
-## Modelo 1: IRI total
+## Modelo 1: MAIA total
 m1 <- lm(effort_other ~ MAIA_DIRt, data = df_mod)
 print(summary(m1))
 
 
-## Modelo 2: 4 subescalas IRI
+## Modelo 2: 8 subescalas MAIA
 m2 <- lm(effort_other ~ MAIA_Percibir_DIRd + MAIA_AusenciaDistraccion_DIRd +
            MAIA_AusenciaPreocupacion_DIRd + MAIA_RegulacionAtencion_DIRd +
            MAIA_ConcienciaEmocional_DIRd + MAIA_Autorregulacion_DIRd +
@@ -109,21 +109,17 @@ print(summary(m2))
 ###################################
 ## Modelo completo (effort_other) con interacción de grupo
 
-## Modelo 1: IRI total
+## Modelo 1: MAIA total
 m1 <- lm(effort_other ~ MAIA_DIRt * grupo, data = df_mod)
 print(summary(m1))
 
 
-## Modelo 2: 4 subescalas IRI
+## Modelo 2: 8 subescalas MAIA
 m2 <- lm(effort_other ~ MAIA_Percibir_DIRd * grupo + MAIA_AusenciaDistraccion_DIRd * grupo +
            MAIA_AusenciaPreocupacion_DIRd * grupo + MAIA_RegulacionAtencion_DIRd * grupo +
            MAIA_ConcienciaEmocional_DIRd * grupo + MAIA_Autorregulacion_DIRd * grupo +
            MAIA_EscuchaCuerpo_DIRd * grupo + MAIA_Confianza_DIRd * grupo,
          data = df_mod)
 print(summary(m2))
-
-
-
-
 
 
