@@ -72,6 +72,23 @@ print(summary(m3))
 
 
 
+## Modelo 1: IRI total
+m1 <- lm(diff_effort ~ IRI_PreocupacionEmpatica_DIRd * grupo + 
+                       IRI_TomaPerspectiva_DIRd * grupo,
+         data = df_mod)
+print(summary(m1))
+
+
+# Gráfico del m4
+
+plot(ggpredict(m1, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
+  ggtitle("Modelo 4") +
+  ylab("Diff Effort") +
+  xlab("IRI - Preocupación Empática") +
+  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+  theme_minimal()
+
+
 
 
 

@@ -156,8 +156,6 @@ print(summary(m4))
 
 
 
-
-
 plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
   ggtitle("Modelo 4") +
   ylab("Diff Effort") +

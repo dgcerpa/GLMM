@@ -71,9 +71,10 @@ write.csv(alldata.sc, "Datos/datos_long_filtrados.csv")
 
 
 
-## Eliminar omisiones (decision == 2)
+## Importar datos de vuelta
 
 alldata.sc <- read.csv("Datos/datos_long_filtrados.csv", header = T)
+
 
 # Excluir trials omitidos y eliminar columna índice
 alldata.sc <- subset(alldata.sc, decision!= 2)

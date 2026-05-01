@@ -25,7 +25,8 @@ library(ggeffects)
 df <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
-# df <- subset(df, grupo != "1")
+# df <- subset(df, grupo != "0")
+
 
 # Subset analítico (casos completos en todas las variables usadas)
 vars_usadas <- c("grupo",
@@ -35,7 +36,8 @@ vars_usadas <- c("grupo",
                  "MAIA_Percibir_DIRd", "MAIA_AusenciaDistraccion_DIRd",
                  "MAIA_AusenciaPreocupacion_DIRd", "MAIA_RegulacionAtencion_DIRd",
                  "MAIA_ConcienciaEmocional_DIRd", "MAIA_Autorregulacion_DIRd", 
-                 "MAIA_EscuchaCuerpo_DIRd", "MAIA_Confianza_DIRd")
+                 "MAIA_EscuchaCuerpo_DIRd", "MAIA_Confianza_DIRd",
+                 "SASS_DIRt")
 
 df_mod <- df %>%
   select(all_of(vars_usadas)) %>%
@@ -58,6 +60,47 @@ m2 <- lm(diff_effort ~ MAIA_Percibir_DIRd + MAIA_AusenciaDistraccion_DIRd +
            MAIA_EscuchaCuerpo_DIRd + MAIA_Confianza_DIRd,
          data = df_mod)
 print(summary(m2))
+
+
+
+
+
+
+
+
+
+
+
+
+
+m1 <- lm(diff_effort ~ MAIA_DIRt * grupo + IRI_Cognitivo * grupo +
+           IRI_Afectivo * grupo, data = df_mod)
+print(summary(m1))
+
+
+
+
+m1 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod)
+print(summary(m1))
+
+
+
+df_mod_exp <- subset(df_mod, grupo != "0")
+
+m2 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_exp)
+print(summary(m2))
+
+
+
+df_mod_ctrl <- subset(df_mod, grupo != "1")
+
+m3 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_ctrl)
+print(summary(m3))
+
+
+
+
+
 
 
 

@@ -57,7 +57,7 @@ library(Hmisc)
 df <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
 
 # Filtrar por grupo
-df = subset(df, grupo!="1")
+# df = subset(df, grupo!="1")
 
 # Variables dependientes (modelo parabólico) 
 vd_names <- c("NASA_effort_easy_4", "NASA_effort_hard_4", "NASA_diff")
@@ -176,7 +176,4 @@ if (nrow(plot_df) == 0) {
   ggsave("correlaciones_bivariadas_barplot.png", p, width = 14, height = 7, dpi = 150)
   cat("\n-> Guardado: correlaciones_bivariadas_barplot.png\n")
 }
-
-
-
 
