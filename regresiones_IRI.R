@@ -1,13 +1,7 @@
 
 
 ## Regresiones múltiples
-## diff_effort y effort_other como VD y la empatía (cuestionario IRI) como VI
-## 
-## Modelos
-##   M1 = IRI total
-##   M2 = 4 subescalas (Fantasia, TomaPerspectiva, PreocEmpatica, IncomodidadPers)
-##   M3 = 2 compuestos: (Fantasia + TomaPerspectiva) y (PreocEmp + IncomodidadPers)
-
+# Diego Garrido Cerpa - Viña del Mar 2026
 
 ## Librerías
 
@@ -50,7 +44,7 @@ df_mod <- df %>%
 
 
 ###################################
-## Modelo completo (diff_effort) sin interacción de grupo
+## Modelo diff_effort sin interacción de grupo
 
 
 ## Modelo 1: IRI total
@@ -72,28 +66,28 @@ print(summary(m3))
 
 
 
-## Modelo 1: IRI total
-m1 <- lm(diff_effort ~ IRI_PreocupacionEmpatica_DIRd * grupo + 
-                       IRI_TomaPerspectiva_DIRd * grupo,
-         data = df_mod)
-print(summary(m1))
+# ## Modelo Alternativo: IRI total
+# m1 <- lm(diff_effort ~ IRI_PreocupacionEmpatica_DIRd * grupo + 
+#                        IRI_TomaPerspectiva_DIRd * grupo,
+#          data = df_mod)
+# print(summary(m1))
 
 
 # Gráfico del m4
-
-plot(ggpredict(m1, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
-  ggtitle("Modelo 4") +
-  ylab("Diff Effort") +
-  xlab("IRI - Preocupación Empática") +
-  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-  theme_minimal()
+# 
+# plot(ggpredict(m1, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
+#   ggtitle("Modelo 4") +
+#   ylab("Diff Effort") +
+#   xlab("IRI - Preocupación Empática") +
+#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+#   theme_minimal()
 
 
 
 
 
 ###################################
-## Modelo completo (diff_effort) con interacción de grupo
+## Modelo diff_effort con interacción de grupo
 
 
 ## Modelo 1: IRI total
@@ -123,12 +117,12 @@ print(summary(m4))
 
 # Gráfico del m4
 
-plot(ggpredict(m4, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
-  ggtitle("Modelo 4") +
-  ylab("Diff Effort") +
-  xlab("IRI - Preocupación Empática") +
-  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-  theme_minimal()
+# plot(ggpredict(m4, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
+#   ggtitle("Modelo 4") +
+#   ylab("Diff Effort") +
+#   xlab("IRI - Preocupación Empática") +
+#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+#   theme_minimal()
 
 
 
@@ -140,18 +134,18 @@ print(summary(m5))
 
 # Gráfico del m4
 
-plot(ggpredict(m5, terms = c("IRI_TomaPerspectiva_DIRd", "grupo"))) +
-  ggtitle("Modelo 5") +
-  ylab("Diff Effort") +
-  xlab("IRI - Toma de perspectiva") +
-  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-  theme_minimal()
+# plot(ggpredict(m5, terms = c("IRI_TomaPerspectiva_DIRd", "grupo"))) +
+#   ggtitle("Modelo 5") +
+#   ylab("Diff Effort") +
+#   xlab("IRI - Toma de perspectiva") +
+#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+#   theme_minimal()
 
 
 
 
 ###################################
-## Modelo completo (effort_other) sin interacción de grupo
+## Modelo effort_other sin interacción de grupo
 
 
 ## Modelo 1: IRI total
@@ -174,7 +168,7 @@ print(summary(m3))
 
 
 ###################################
-## Modelo completo (effort_other) con interacción de grupo
+## Modelo effort_other con interacción de grupo
 
 
 ## Modelo 1: IRI total

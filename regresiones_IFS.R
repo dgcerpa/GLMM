@@ -1,12 +1,7 @@
 
 
 ## Regresiones múltiples
-## diff_effort y effort_other como VD y las funciones ejecutivas (cuestionario IFS) y SASS como VI
-##
-## Modelos
-##   M1 = IFS total
-##   M2 = 8 subescalas IFS
-##   M3/M4 = SASS (sin/con interacción de grupo)
+# Diego Garrido Cerpa - Viña del Mar 2026
 
 
 ## Librerías
@@ -46,7 +41,7 @@ df_mod <- df %>%
 
 
 ###################################
-## Modelo completo (diff_effort) sin interacción de grupo
+## Modelo diff_effort sin interacción de grupo
 
 ## Modelo 1: IFS total
 m1 <- lm(diff_effort ~ IFS_Total_DIRd, data = df_mod)
@@ -59,6 +54,7 @@ m2 <- lm(diff_effort ~ IFS_SeriesMotoras_DIRd + IFS_InstruccionesConflictivas_DI
            IFS_MesesAtras_DIRd + IFS_MemoriaTrabajoVisual_DIRd +
            IFS_Refranes_DIRd + IFS_ControlInhibitorioVerbal_DIRd,
          data = df_mod)
+
 print(summary(m2))
 
 
@@ -67,7 +63,7 @@ print(summary(m2))
 
 
 ###################################
-## Modelo completo (diff_effort) con interacción de grupo
+## Modelo diff_effort con interacción de grupo
 
 ## Modelo 1: IFS total
 m1 <- lm(diff_effort ~ IFS_Total_DIRd * grupo, data = df_mod)
@@ -95,7 +91,7 @@ print(summary(m2))
 
 
 ###################################
-## Modelo completo (effort_other) sin interacción de grupo
+## Modelo effort_other sin interacción de grupo
 
 ## Modelo 1: IFS total
 m1 <- lm(effort_other ~ IFS_Total_DIRd, data = df_mod)
@@ -114,7 +110,7 @@ print(summary(m2))
 
 
 ###################################
-## Modelo completo (effort_other) con interacción de grupo
+## Modelo effort_other con interacción de grupo
 
 ## Modelo 1: IFS total
 m1 <- lm(effort_other ~ IFS_Total_DIRd * grupo, data = df_mod)
@@ -155,13 +151,12 @@ m4 <- lm(diff_effort ~ SASS_DIRt * grupo, data = df_mod)
 print(summary(m4))
 
 
-
-plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
-  ggtitle("Modelo 4") +
-  ylab("Diff Effort") +
-  xlab("SASS Total") +
-  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-  theme_minimal()
+# plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
+#   ggtitle("Modelo 4") +
+#   ylab("Diff Effort") +
+#   xlab("SASS Total") +
+#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+#   theme_minimal()
 
 
 
@@ -176,10 +171,10 @@ m4 <- lm(effort_other ~ SASS_DIRt * grupo, data = df_mod)
 print(summary(m4))
 
 
-plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
-  ggtitle("Modelo 4") +
-  ylab("Effort other") +
-  xlab("SASS Total") +
-  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-  theme_minimal()
+# plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
+#   ggtitle("Modelo 4") +
+#   ylab("Effort other") +
+#   xlab("SASS Total") +
+#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+#   theme_minimal()
 

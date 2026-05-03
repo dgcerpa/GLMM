@@ -2,6 +2,8 @@
 
 # Robust LMM: k ~ Agent * Grupo + (1|subject_id)
 # Modelos: parabólico e hiperbólico
+# Diego Garrido Cerpa - Viña del Mar 2026
+
 
 # Librerías
 
@@ -116,11 +118,6 @@ npar_h <- f1.ld.f1(y = df_h$k, time = df_h$Agent, group = df_h$grupo,
                    subject = df_h$subject_id, time.name = "Agent",
                    group.name = "Grupo", description = FALSE, plot.RTE = FALSE)
 print(round(npar_h$ANOVA.test, 4))
-
-
-
-
-
 
 
 

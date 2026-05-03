@@ -1,11 +1,7 @@
 
 
 ## Regresiones múltiples
-## diff_effort y effort_other como VD y la interocepción (cuestionario MAIA) como VI
-##
-## Modelos
-##   M1 = MAIA total
-##   M2 = 8 subescalas MAIA
+# Diego Garrido Cerpa - Viña del Mar 2026
 
 
 ## Librerías
@@ -46,7 +42,7 @@ df_mod <- df %>%
 
 
 ###################################
-## Modelo completo (diff_effort) sin interacción de grupo
+## Modelo diff_effort sin interacción de grupo
 
 ## Modelo 1: MAIA total
 m1 <- lm(diff_effort ~ MAIA_DIRt, data = df_mod)
@@ -64,48 +60,39 @@ print(summary(m2))
 
 
 
+## Modelos alternativos
+# Revisar variables y agregarlas más arriba en vars_usadas
 
-
-
-
-
-
-
-
-
-m1 <- lm(diff_effort ~ MAIA_DIRt * grupo + IRI_Cognitivo * grupo +
-           IRI_Afectivo * grupo, data = df_mod)
-print(summary(m1))
-
-
-
-
-m1 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod)
-print(summary(m1))
-
-
-
-df_mod_exp <- subset(df_mod, grupo != "0")
-
-m2 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_exp)
-print(summary(m2))
-
-
-
-df_mod_ctrl <- subset(df_mod, grupo != "1")
-
-m3 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_ctrl)
-print(summary(m3))
-
-
-
+# m1 <- lm(diff_effort ~ MAIA_DIRt * grupo + IRI_Cognitivo * grupo +
+#            IRI_Afectivo * grupo, data = df_mod)
+# print(summary(m1))
+# 
+# 
+# 
+# 
+# m1 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod)
+# print(summary(m1))
+# 
+# 
+# 
+# df_mod_exp <- subset(df_mod, grupo != "0")
+# 
+# m2 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_exp)
+# print(summary(m2))
+# 
+# 
+# 
+# df_mod_ctrl <- subset(df_mod, grupo != "1")
+# 
+# m3 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_ctrl)
+# print(summary(m3))
 
 
 
 
 
 ###################################
-## Modelo completo (diff_effort) con interacción de grupo
+## Modelo diff_effort con interacción de grupo
 
 ## Modelo 1: MAIA total
 m1 <- lm(diff_effort ~ MAIA_DIRt * grupo, data = df_mod)
@@ -130,9 +117,8 @@ print(summary(m2))
 
 
 
-
 ###################################
-## Modelo completo (effort_other) sin interacción de grupo
+## Modelo effort_other sin interacción de grupo
 
 ## Modelo 1: MAIA total
 m1 <- lm(effort_other ~ MAIA_DIRt, data = df_mod)
@@ -150,7 +136,7 @@ print(summary(m2))
 
 
 ###################################
-## Modelo completo (effort_other) con interacción de grupo
+## Modelo effort_other con interacción de grupo
 
 ## Modelo 1: MAIA total
 m1 <- lm(effort_other ~ MAIA_DIRt * grupo, data = df_mod)

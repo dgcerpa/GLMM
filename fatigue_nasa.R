@@ -1,7 +1,7 @@
 
 
 ## Extracción de columnas de Fatiga y NASA desde datos_limpios.csv
-## Filtra por sujetos presentes en dataset_full.csv y anexa grupo
+# Diego Garrido Cerpa - Viña del Mar 2026
 
 
 ## Librerías
@@ -45,7 +45,6 @@ dataset_full %>%
 
 
 #########################
-
 ## Correlaciones entre parámetros del modelo parabólico 2K1B y escalas psicológicas/clínicas
 
 # Librerías

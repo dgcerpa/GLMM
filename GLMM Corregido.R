@@ -1,8 +1,7 @@
 
 
-## GLMM: Modelo mixto generalizado para decisiones bajo esfuerzo
-## VD: decision (binaria), VI: reward, effort, agent, grupo
-## Efecto aleatorio por sujeto (sub)
+## GLMM: Modelo mixto generalizado
+# Diego Garrido Cerpa - Viña del Mar 2026
 
 
 ## Librerías
@@ -266,6 +265,5 @@ dataset_completo <- pasar %>%
   left_join(params, by = "sub")
 
 write.csv(dataset_completo, "dataset_full.csv", row.names = FALSE)
-
 
 
