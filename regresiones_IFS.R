@@ -151,12 +151,12 @@ m4 <- lm(diff_effort ~ SASS_DIRt * grupo, data = df_mod)
 print(summary(m4))
 
 
-# plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
-#   ggtitle("Modelo 4") +
-#   ylab("Diff Effort") +
-#   xlab("SASS Total") +
-#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-#   theme_minimal()
+plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
+  ggtitle("Modelo 4") +
+  ylab("Diff Effort") +
+  xlab("SASS Total") +
+  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+  theme_minimal()
 
 
 

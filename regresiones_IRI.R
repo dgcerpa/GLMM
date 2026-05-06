@@ -16,7 +16,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
+df <- read.csv("Datos/dataset_full_v2.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "1")
@@ -66,26 +66,6 @@ print(summary(m3))
 
 
 
-# ## Modelo Alternativo: IRI total
-# m1 <- lm(diff_effort ~ IRI_PreocupacionEmpatica_DIRd * grupo + 
-#                        IRI_TomaPerspectiva_DIRd * grupo,
-#          data = df_mod)
-# print(summary(m1))
-
-
-# Gráfico del m4
-# 
-# plot(ggpredict(m1, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
-#   ggtitle("Modelo 4") +
-#   ylab("Diff Effort") +
-#   xlab("IRI - Preocupación Empática") +
-#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-#   theme_minimal()
-
-
-
-
-
 ###################################
 ## Modelo diff_effort con interacción de grupo
 
@@ -117,12 +97,12 @@ print(summary(m4))
 
 # Gráfico del m4
 
-# plot(ggpredict(m4, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
-#   ggtitle("Modelo 4") +
-#   ylab("Diff Effort") +
-#   xlab("IRI - Preocupación Empática") +
-#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-#   theme_minimal()
+plot(ggpredict(m4, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
+  ggtitle("Modelo 4") +
+  ylab("Diff Effort") +
+  xlab("IRI - Preocupación Empática") +
+  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+  theme_minimal()
 
 
 
@@ -132,14 +112,14 @@ print(summary(m5))
 
 
 
-# Gráfico del m4
+# Gráfico del m5
 
-# plot(ggpredict(m5, terms = c("IRI_TomaPerspectiva_DIRd", "grupo"))) +
-#   ggtitle("Modelo 5") +
-#   ylab("Diff Effort") +
-#   xlab("IRI - Toma de perspectiva") +
-#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-#   theme_minimal()
+plot(ggpredict(m5, terms = c("IRI_TomaPerspectiva_DIRd", "grupo"))) +
+  ggtitle("Modelo 5") +
+  ylab("Diff Effort") +
+  xlab("IRI - Toma de perspectiva") +
+  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
+  theme_minimal()
 
 
 

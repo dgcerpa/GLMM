@@ -18,7 +18,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
+df <- read.csv("Datos/dataset_full_v2.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "0")
@@ -60,36 +60,6 @@ print(summary(m2))
 
 
 
-## Modelos alternativos
-# Revisar variables y agregarlas más arriba en vars_usadas
-
-# m1 <- lm(diff_effort ~ MAIA_DIRt * grupo + IRI_Cognitivo * grupo +
-#            IRI_Afectivo * grupo, data = df_mod)
-# print(summary(m1))
-# 
-# 
-# 
-# 
-# m1 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod)
-# print(summary(m1))
-# 
-# 
-# 
-# df_mod_exp <- subset(df_mod, grupo != "0")
-# 
-# m2 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_exp)
-# print(summary(m2))
-# 
-# 
-# 
-# df_mod_ctrl <- subset(df_mod, grupo != "1")
-# 
-# m3 <- lm(diff_effort ~ MAIA_DIRt + SASS_DIRt + IRI_Afectivo + IRI_Cognitivo, data = df_mod_ctrl)
-# print(summary(m3))
-
-
-
-
 
 ###################################
 ## Modelo diff_effort con interacción de grupo
@@ -114,6 +84,8 @@ m2 <- lm(diff_effort ~ MAIA_Percibir_DIRd * grupo + MAIA_AusenciaDistraccion_DIR
            MAIA_EscuchaCuerpo_DIRd * grupo + MAIA_Confianza_DIRd * grupo,
          data = df_mod)
 print(summary(m2))
+
+
 
 
 

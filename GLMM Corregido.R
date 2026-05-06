@@ -189,6 +189,110 @@ pairs(z2, adjust = "fdr")
 
 
 
+###################
+# Gráficos Post-Hoc
+
+# Etiquetas comunes
+lab_grupo <- c("0" = "Control", "1" = "Experimental")
+lab_agent <- c("0" = "Self",    "1" = "Other")
+
+
+## ---- Gráfico 1: Forest plot de slopes (z y z2) ----
+# Estimación puntual e IC95% de las pendientes de c.effort para cada
+# combinación grupo x agent. Es la representación directa de z / z2.
+
+df_z <- as.data.frame(summary(z, infer = c(TRUE, TRUE)))
+
+# Homogeneizar nombres de IC (emtrends sobre GLMM usa asymp.LCL/UCL)
+names(df_z)[names(df_z) == "asymp.LCL"] <- "lower.CL"
+names(df_z)[names(df_z) == "asymp.UCL"] <- "upper.CL"
+
+# Asegurar que grupo y agent sean factores (vienen como numéricos)
+df_z$grupo <- factor(df_z$grupo)
+df_z$agent <- factor(df_z$agent)
+
+g1 <- ggplot(df_z,
+             aes(x = grupo, y = c.effort.trend,
+                 ymin = lower.CL, ymax = upper.CL,
+                 colour = agent)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_pointrange(position = position_dodge(width = 0.4), size = 0.8) +
+  scale_x_discrete(labels = lab_grupo) +
+  scale_colour_discrete(labels = lab_agent, name = "Agente") +
+  labs(title = "Pendientes de esfuerzo (c.effort) sobre la decisión",
+       subtitle = "Estimación e IC95% por grupo x agente (modelo m1)",
+       x = "Grupo", y = "Slope de c.effort (escala logit)") +
+  theme_minimal(base_size = 13)
+
+print(g1)
+
+
+## ---- Gráfico 2: Contrastes pareados con IC95% ----
+# Diferencias entre slopes con FDR; las estrellas marcan p<.05.
+
+contr_z <- as.data.frame(pairs(z, adjust = "fdr"))
+contr_z$panel <- paste0("Por agente: ",
+                        factor(contr_z$agent,
+                               levels = c(0, 1),
+                               labels = c("Self", "Other")))
+
+contr_z2 <- as.data.frame(pairs(z2, adjust = "fdr"))
+contr_z2$panel <- paste0("Por grupo: ",
+                         factor(contr_z2$grupo,
+                                levels = c(0, 1),
+                                labels = c("Control", "Experimental")))
+
+contrastes <- bind_rows(contr_z, contr_z2)
+contrastes$lower <- contrastes$estimate - 1.96 * contrastes$SE
+contrastes$upper <- contrastes$estimate + 1.96 * contrastes$SE
+contrastes$sig   <- ifelse(contrastes$p.value < 0.05, "*", "")
+
+g2 <- ggplot(contrastes,
+             aes(x = estimate, y = contrast,
+                 xmin = lower, xmax = upper)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_pointrange(colour = "steelblue", size = 0.7) +
+  geom_text(aes(label = sig), nudge_y = 0.25, size = 6) +
+  facet_wrap(~ panel, scales = "free_y") +
+  labs(title = "Contrastes pareados de slopes de c.effort",
+       subtitle = "Diferencia de pendientes (IC95%, FDR). * p < .05",
+       x = "Diferencia estimada (logit)", y = NULL) +
+  theme_minimal(base_size = 13)
+
+print(g2)
+
+
+## ---- Gráfico 3: Curvas predichas de decisión ----
+# Visualización intuitiva: probabilidad predicha de aceptar la oferta en
+# función de c.effort, separada por grupo y agente. Las pendientes z/z2
+# corresponden a la inclinación de cada curva.
+
+pred_eff <- ggpredict(m1, terms = c("c.effort [all]", "agent", "grupo"))
+
+g3 <- plot(pred_eff) +
+  scale_colour_discrete(labels = lab_agent, name = "Agente") +
+  scale_fill_discrete(labels   = lab_agent, name = "Agente") +
+  facet_wrap(~ facet, labeller = labeller(facet = lab_grupo)) +
+  labs(title = "Probabilidad predicha de aceptar vs. esfuerzo",
+       subtitle = "Curvas que ilustran las pendientes estimadas en z y z2",
+       x = "Esfuerzo (z-score)", y = "P(decisión = aceptar)") +
+  theme_minimal(base_size = 13)
+
+print(g3)
+
+
+# Guardar figuras (ajusta ruta/dimensiones si lo necesitas)
+dir.create("Figuras", showWarnings = FALSE)
+ggsave("Figuras/posthoc_slopes.png",     g1, width = 7, height = 5, dpi = 300)
+ggsave("Figuras/posthoc_contrastes.png", g2, width = 8, height = 5, dpi = 300)
+ggsave("Figuras/posthoc_curvas.png",     g3, width = 8, height = 5, dpi = 300)
+
+
+
+
+
+
+
 ####
 # Extraer slopes individuales de esfuerzo
 
@@ -209,14 +313,14 @@ data.self.sc[,numcols] <- scale(data.self.sc[,numcols])
 
 
 # GLMM por agente para estimar slopes individuales
-lmself_rs.sc<-glmer(decision ~ c.reward*grupo + c.effort*grupo + (1+c.reward + c.effort|sub),
+lmself_rs.sc<-glmer(decision ~ c.reward * grupo + c.effort * grupo + (1+c.reward + c.effort|sub),
                     data=data.self.sc,
                     family=binomial,
                     control = glmerControl(optimizer = "bobyqa",
                                            optCtrl=list(maxfun=2e5)))
 
 
-lmother_rs.sc<-glmer(decision ~ c.reward*grupo + c.effort*grupo + (1+c.reward + c.effort|sub),
+lmother_rs.sc<-glmer(decision ~ c.reward + c.effort + (1+c.reward + c.effort|sub),
                      data=data.other.sc,
                      family=binomial,
                      control = glmerControl(optimizer = "bobyqa",
@@ -242,7 +346,10 @@ indv_dataset$diff_effort <- indv_dataset$effort_other - indv_dataset$effort_self
 indv_dataset$diff_reward <- indv_dataset$reward_other - indv_dataset$reward_self
 
 # Guardar slopes individuales
-write.csv(indv_dataset, "post_hoc.csv", row.names = FALSE)
+write.csv(indv_dataset, "post_hoc_v2.csv", row.names = FALSE)
+
+
+
 
 
 
@@ -254,9 +361,9 @@ write.csv(indv_dataset, "post_hoc.csv", row.names = FALSE)
 pasar <- read.csv("Datos/pasar_a_diego_v2.csv")
 pasar <- pasar[, -c(1, (ncol(pasar)-5):ncol(pasar))]
 
-post_hoc <- read.csv("Datos/post_hoc.csv")
+post_hoc <- read.csv("Datos/post_hoc_v2_sin_grupo.csv")
 
-params <- read_excel("Datos/params_2k1b_all_families.xlsx") %>%
+params <- read_excel("Datos/Modelos Comp/params_2k1b_all_families.xlsx") %>%
   select(sub = subject_id, p_2k1b_k_self, p_2k1b_k_other, p_2k1b_beta, p_2k1b_diff_k)
 
 # Unir por sujeto y guardar dataset completo
@@ -264,6 +371,6 @@ dataset_completo <- pasar %>%
   left_join(post_hoc, by = "sub") %>%
   left_join(params, by = "sub")
 
-write.csv(dataset_completo, "dataset_full.csv", row.names = FALSE)
+write.csv(dataset_completo, "Datos/dataset_full_v2.csv", row.names = FALSE)
 
 
