@@ -18,7 +18,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
+df <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "1")
@@ -152,7 +152,7 @@ print(summary(m4))
 
 
 plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
-  ggtitle("Modelo 4") +
+  ggtitle("Correlación SASS y Diferencia de Esfuerzo") +
   ylab("Diff Effort") +
   xlab("SASS Total") +
   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +

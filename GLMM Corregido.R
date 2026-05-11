@@ -69,7 +69,7 @@ write.csv(alldata.sc, "Datos/datos_long_filtrados.csv")
 
 
 
-
+######################################
 ## Importar datos de vuelta
 
 alldata.sc <- read.csv("Datos/datos_long_filtrados.csv", header = T)
@@ -107,7 +107,7 @@ m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effo
 
 
 ## Modelo 5: igual que m3 con solo intercept aleatorio
-m5 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
+m4 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
             data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
@@ -115,7 +115,7 @@ m5 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
 
 
 # Modelos descartados (no convergen o son más complejos sin mejora)
-# m4  <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward + agent|sub),
+# m5  <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward + agent|sub),
 #              data=alldata.sc,
 #              family=binomial,
 #              control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
@@ -148,22 +148,28 @@ m5 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
 
 
 # Comparación de modelos
-modelo_comp_dec <- anova(m1, m2, m3, m5)
+modelo_comp_dec <- anova(m1, m2, m3, m4)
+
+
 
 
 # Gráfico del modelo ganador (AIC)
 plot(ggpredict(m3, terms = c("c.effort", "agent", "grupo"))) +
   ggtitle("Modelo 3") +
-  ylab("Probabilidad predicha de decisión") +
-  xlab("Nivel de esfuerzo (c.effort)") +
+  ylab("Probabilidad de trabajo") +
+  xlab("Nivel de esfuerzo") +
   scale_colour_discrete(labels = c("0" = "Self", "1" = "Other"), name = "Agente") +
-  facet_wrap(~facet, labeller = labeller(facet = c("0" = "Control", "1" = "Experimental"))) +
+  facet_wrap(~facet, labeller = labeller(facet = c("grupo = 0" = "Control", "grupo = 1" = "Experimental"))) +
   theme_minimal()
 
 
+
 # Resumen de modelos seleccionados
-summary(m1)
+# summary(m1)
 summary(m3)
+
+
+
 
 
 
@@ -293,7 +299,11 @@ ggsave("Figuras/posthoc_curvas.png",     g3, width = 8, height = 5, dpi = 300)
 
 
 
-####
+
+
+
+
+##########################################
 # Extraer slopes individuales de esfuerzo
 
 # Separar datos por agente

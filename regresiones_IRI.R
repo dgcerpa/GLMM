@@ -16,7 +16,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("Datos/dataset_full_v2.csv", stringsAsFactors = FALSE)
+df <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "1")
@@ -98,7 +98,7 @@ print(summary(m4))
 # Gráfico del m4
 
 plot(ggpredict(m4, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
-  ggtitle("Modelo 4") +
+  ggtitle("Correlación Preocupación Empática y Diferencia de Esfuerzo") +
   ylab("Diff Effort") +
   xlab("IRI - Preocupación Empática") +
   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
@@ -109,18 +109,6 @@ plot(ggpredict(m4, terms = c("IRI_PreocupacionEmpatica_DIRd", "grupo"))) +
 ## IRI toma de perspectiva * grupo
 m5 <- lm(diff_effort ~ IRI_TomaPerspectiva_DIRd * grupo, data = df_mod)
 print(summary(m5))
-
-
-
-# Gráfico del m5
-
-plot(ggpredict(m5, terms = c("IRI_TomaPerspectiva_DIRd", "grupo"))) +
-  ggtitle("Modelo 5") +
-  ylab("Diff Effort") +
-  xlab("IRI - Toma de perspectiva") +
-  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-  theme_minimal()
-
 
 
 

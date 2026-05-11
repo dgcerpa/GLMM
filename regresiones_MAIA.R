@@ -18,7 +18,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("Datos/dataset_full_v2.csv", stringsAsFactors = FALSE)
+df <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "0")
@@ -32,8 +32,7 @@ vars_usadas <- c("grupo",
                  "MAIA_Percibir_DIRd", "MAIA_AusenciaDistraccion_DIRd",
                  "MAIA_AusenciaPreocupacion_DIRd", "MAIA_RegulacionAtencion_DIRd",
                  "MAIA_ConcienciaEmocional_DIRd", "MAIA_Autorregulacion_DIRd", 
-                 "MAIA_EscuchaCuerpo_DIRd", "MAIA_Confianza_DIRd",
-                 "SASS_DIRt")
+                 "MAIA_EscuchaCuerpo_DIRd", "MAIA_Confianza_DIRd")
 
 df_mod <- df %>%
   select(all_of(vars_usadas)) %>%
@@ -60,7 +59,6 @@ print(summary(m2))
 
 
 
-
 ###################################
 ## Modelo diff_effort con interacción de grupo
 
@@ -70,7 +68,7 @@ print(summary(m1))
 
 
 plot(ggpredict(m1, terms = c("MAIA_DIRt", "grupo"))) +
-  ggtitle("Modelo 4") +
+  ggtitle("Correlación MAIA y Diferencia de Esfuerzo") +
   ylab("Diff Effort") +
   xlab("MAIA Total") +
   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
@@ -84,7 +82,6 @@ m2 <- lm(diff_effort ~ MAIA_Percibir_DIRd * grupo + MAIA_AusenciaDistraccion_DIR
            MAIA_EscuchaCuerpo_DIRd * grupo + MAIA_Confianza_DIRd * grupo,
          data = df_mod)
 print(summary(m2))
-
 
 
 
