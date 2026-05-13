@@ -53,7 +53,7 @@ library(tidyverse)
 library(Hmisc)
 
 # Cargar datos
-df <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
+df <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
 
 # Filtrar por grupo
 # df = subset(df, grupo!="1")

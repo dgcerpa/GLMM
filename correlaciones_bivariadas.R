@@ -280,7 +280,7 @@ if (nrow(plot_df) == 0) {
 
 
 # Cargar datos
-df_heat <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
+df_heat <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
 
 # Filtrar por grupo (opcional)
 df_heat = subset(df_heat, grupo != "0")
@@ -367,7 +367,7 @@ p_heat <- ggplot(heat_df, aes(x = Var1_lab, y = Var2_lab, fill = rho)) +
   scale_x_discrete(position = "top") +
   coord_fixed() +
   labs(
-    title = "Matriz de correlaciones (Spearman)",
+    title = "Matriz de correlaciones (Pearson)",
     subtitle = "Asteriscos: *** p<.001, ** p<.01, * p<.05, . p<.10",
     x = NULL, y = NULL
   ) +

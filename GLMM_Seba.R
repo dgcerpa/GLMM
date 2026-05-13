@@ -641,7 +641,7 @@ model_comp_success <- anova(m1, m2, m3, m4)
 
 
 
-plot(ggpredict(m4, terms = c("c.effort", "agent", "grupo"))) +
+plot(ggpredict(m2, terms = c("c.effort", "agent", "grupo"))) +
   ggtitle("Modelo 2") +
   ylab("Probabilidad predicha de decisión") +
   xlab("Nivel de esfuerzo (c.effort)") +
@@ -662,14 +662,14 @@ em_posthoc_m2_succes <- emmeans(m2,
 
 pairs(em_posthoc_m2_succes)
 
-em_posthoc_m3_succes <- emmeans(m2, 
+em_posthoc_m2_succes <- emmeans(m2, 
                                 ~ agent | grupo,
                                 type = "response")
 
-pairs(em_posthoc_m3_succes)
+pairs(em_posthoc_m2_succes)
 
 
-slopes_success_m2 <- emtrends(m2_succ_split_inter_ri,
+slopes_success_m2 <- emtrends(m2,
                               ~ grupo*agent,
                               var = "c.reward")
 pairs(slopes_success_m2)
@@ -708,7 +708,7 @@ ggplot(df_success_m2, aes(x = agent, y = prob, color = grupo)) +
   theme_light(base_size = 14)
 
 
-ggplot(df_success_m2, aes(x = factor(agent), y = prob, fill = grupo)) +
+ggplot(df_success_m2, aes(x = grupo, y = prob, fill = factor(agent))) +
   geom_col(
     position = position_dodge(width = 0.6),
     width = 0.5, color = "black"
@@ -719,24 +719,18 @@ ggplot(df_success_m2, aes(x = factor(agent), y = prob, fill = grupo)) +
     position = position_dodge(width = 0.6)
   ) +
   scale_x_discrete(
-    labels = c("0" = "Self", "1" = "Other")
+    labels = c("0" = "Control", "1" = "Vulnerable")
   ) +
   scale_fill_manual(
     values = c("0" = "#1F77B4", "1" = "#D62728"),
-    labels = c("0" = "Control", "1" = "Vulnerable"),
-    name = "Grupo"
+    labels = c("0" = "Self", "1" = "Other"),
+    name = "Agente"
   ) +
   labs(
-    x = "Agente",
-    y = "Probabilidad predicha de fallo"
+    x = "Grupo",
+    y = "Probabilidad de fallo"
   ) +
-  
   theme_classic(base_size = 14)
-
-
-
-
-
 
 
 
