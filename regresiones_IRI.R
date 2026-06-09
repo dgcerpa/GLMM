@@ -16,7 +16,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
+df <- read_csv("Documentos/GitHub/GLMM/Datos/dataset_full_v2.csv")
 
 # Filtro por grupo
 # df <- subset(df, grupo != "1")
@@ -85,7 +85,11 @@ print(summary(m2))
 
 ## Modelo 3: 2 compuestos (cognitivo / afectivo)
 m3 <- lm(diff_effort ~ IRI_Cognitivo * grupo + IRI_Afectivo * grupo, data = df_mod)
+m31 <- lm(diff_effort ~ IRI_Cognitivo + IRI_Afectivo , data = df_mod)
+
 print(summary(m3))
+print(summary(m31))
+anova(m31,m3)
 
 
 

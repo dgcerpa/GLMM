@@ -353,7 +353,7 @@ lmself_rs.sc<-glmer(decision ~ c.reward*grupo + c.effort*grupo + (1+c.reward + c
                                            optCtrl=list(maxfun=2e5)))
 
 
-lmother_rs.sc<-glmer(decision ~ c.reward*grupo + c.effort*grupo + (1+c.reward + c.effort|sub),
+lmother_rs.sc<-glmer(decision ~ c.reward + c.effort + (1+c.reward + c.effort|sub),
                      data=data.other.sc, 
                      family=binomial,
                      control = glmerControl(optimizer = "bobyqa",
