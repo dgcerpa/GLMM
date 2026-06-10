@@ -280,10 +280,10 @@ if (nrow(plot_df) == 0) {
 
 
 # Cargar datos
-df_heat <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
+df_heat <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
 
 # Filtrar por grupo (opcional)
-df_heat = subset(df_heat, grupo != "0")
+# df_heat = subset(df_heat, grupo != "0")
 
 # Crear subdimensiones derivadas del IRI
 df_heat <- df_heat %>%
@@ -299,7 +299,15 @@ vars_heatmap <- c(
   "effort_self", "effort_other", "diff_effort",
   # Escalas de interes
   "IRI_DIRt", "IRI_Cognitivo", "IRI_Afectivo",
-  "MAIA_DIRt", "SASS_DIRt"
+  "MAIA_DIRt", "SASS_DIRt",
+  "NASA_effort_easy_4", "NASA_effort_hard_4", "NASA_diff",
+  
+  # Escalas MAIA
+  "MAIA_Percibir_DIRd", "MAIA_AusenciaDistraccion_DIRd",
+  "MAIA_AusenciaPreocupacion_DIRd", "MAIA_RegulacionAtencion_DIRd",
+  "MAIA_ConcienciaEmocional_DIRd", "MAIA_Autorregulacion_DIRd", 
+  "MAIA_EscuchaCuerpo_DIRd", "MAIA_Confianza_DIRd"
+  
 )
 
 # Etiquetas legibles para los ejes
@@ -311,7 +319,19 @@ var_labels <- c(
   IRI_Cognitivo    = "IRI Cognitivo",
   IRI_Afectivo     = "IRI Afectivo",
   MAIA_DIRt        = "MAIA Total",
-  SASS_DIRt        = "SASS Total"
+  SASS_DIRt        = "SASS Total",
+  NASA_effort_easy_4 = "NASA Effort Easy",
+  NASA_effort_hard_4 = "NASA Effort Hard",
+  NASA_diff          = "NASA Diff",
+  
+  MAIA_Percibir_DIRd = "MAIA Percibir",
+  MAIA_AusenciaDistraccion_DIRd = "MAIA Ausencia Distracción",
+  MAIA_AusenciaPreocupacion_DIRd = "MAIA Ausencia Preocupación",
+  MAIA_RegulacionAtencion_DIRd = "MAIA Regulacion de Atención",
+  MAIA_ConcienciaEmocional_DIRd = "MAIA Conciencia Emocional",
+  MAIA_Autorregulacion_DIRd = "MAIA Autorregulación",
+  MAIA_EscuchaCuerpo_DIRd = "MAIA Escucha del cuerpo",
+  MAIA_Confianza_DIRd = "MAIA Confianza"
 )
 
 # Preparar matriz numerica
@@ -378,6 +398,8 @@ p_heat <- ggplot(heat_df, aes(x = Var1_lab, y = Var2_lab, fill = rho)) +
     legend.position = "right"
   )
 
+
+print(p_heat)
 ggsave("correlaciones_heatmap_experimental.png", p_heat,
        width = 10, height = 9, dpi = 150)
 cat("\n-> Guardado: correlaciones_heatmap.png\n")

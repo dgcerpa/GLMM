@@ -13,7 +13,7 @@ library(dplyr)
 ## Data
 
 # Referencia de sujetos (ID y grupo) desde dataset_full
-ref <- read.csv("dataset_full.csv", stringsAsFactors = FALSE) %>% select(ID = sub, grupo)
+ref <- read.csv("Datos/dataset_full_v2.csv", stringsAsFactors = FALSE) %>% select(ID = sub, grupo)
 
 # Extrae columnas de interés, calza con ref, calcula NASA_diff y ordena por ID
 read.csv("Datos/datos_limpios.csv", stringsAsFactors = FALSE) %>%
@@ -30,7 +30,7 @@ read.csv("Datos/datos_limpios.csv", stringsAsFactors = FALSE) %>%
 ## Integración de fatigue_nasa.csv a dataset_full.csv
 ## Une las variables de fatiga y NASA al dataset principal por ID/sub
 
-dataset_full <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
+dataset_full <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
 
 fatigue_nasa <- read.csv("Datos/fatigue_nasa.csv", stringsAsFactors = FALSE) %>%
   select(-grupo) %>%
@@ -38,7 +38,7 @@ fatigue_nasa <- read.csv("Datos/fatigue_nasa.csv", stringsAsFactors = FALSE) %>%
 
 dataset_full %>%
   left_join(fatigue_nasa, by = "sub") %>%
-  write.csv("dataset_full.csv", row.names = FALSE)
+  write.csv("dataset_full_final.csv", row.names = FALSE)
 
 
 
@@ -53,7 +53,7 @@ library(tidyverse)
 library(Hmisc)
 
 # Cargar datos
-df <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
+df <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
 
 # Filtrar por grupo
 # df = subset(df, grupo!="1")
@@ -175,4 +175,91 @@ if (nrow(plot_df) == 0) {
   ggsave("correlaciones_bivariadas_barplot.png", p, width = 14, height = 7, dpi = 150)
   cat("\n-> Guardado: correlaciones_bivariadas_barplot.png\n")
 }
+
+
+#########################
+## Barplot: NASA Easy vs NASA Hard por grupo (4 barras)
+
+# Pasar a formato largo
+nasa_long <- df %>%
+  select(grupo, NASA_effort_easy_4, NASA_effort_hard_4) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  pivot_longer(cols = c(NASA_effort_easy_4, NASA_effort_hard_4),
+               names_to = "Condicion", values_to = "NASA") %>%
+  filter(!is.na(NASA)) %>%
+  mutate(
+    Condicion = factor(Condicion,
+                       levels = c("NASA_effort_easy_4", "NASA_effort_hard_4"),
+                       labels = c("NASA Easy", "NASA Hard")),
+    grupo = factor(grupo, levels = c(0, 1), labels = c("Control", "Experimental"))
+  )
+
+# Resumen (media +- error estándar) por condición y grupo
+nasa_bar <- nasa_long %>%
+  group_by(Condicion, grupo) %>%
+  summarise(
+    media = mean(NASA),
+    se    = sd(NASA) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# Test entre grupos dentro de cada condición (t de Student) -> etiqueta de significancia
+p_a_estrellas <- function(p) {
+  if (is.na(p)) "" else if (p < 0.001) "***" else if (p < 0.01) "**" else
+    if (p < 0.05) "*" else if (p < 0.10) "." else "ns"
+}
+
+sig_nasa <- nasa_long %>%
+  group_by(Condicion) %>%
+  summarise(
+    p_value = t.test(NASA ~ grupo)$p.value,
+    .groups = "drop"
+  ) %>%
+  left_join(
+    nasa_bar %>% group_by(Condicion) %>%
+      summarise(y_top = max(media + se), .groups = "drop"),
+    by = "Condicion"
+  ) %>%
+  mutate(
+    etiqueta = vapply(p_value, p_a_estrellas, character(1)),
+    x = as.numeric(Condicion),
+    y_bracket = y_top * 1.05,        # altura del corchete
+    y_label   = y_top * 1.08         # altura del asterisco
+  )
+
+# Posición horizontal de las barras dentro del dodge (Control vs Experimental)
+dodge_off <- 0.8 / 2 / 2   # mitad del ancho entre las dos barras dodge
+
+p_nasa <- ggplot(nasa_bar, aes(x = Condicion, y = media, fill = grupo)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7,
+           color = "gray30", linewidth = 0.3) +
+  geom_errorbar(aes(ymin = media - se, ymax = media + se),
+                position = position_dodge(width = 0.8), width = 0.2) +
+  # Corchete que une las dos barras de cada condición
+  geom_segment(data = sig_nasa, inherit.aes = FALSE,
+               aes(x = x - dodge_off, xend = x + dodge_off,
+                   y = y_bracket, yend = y_bracket)) +
+  geom_segment(data = sig_nasa, inherit.aes = FALSE,
+               aes(x = x - dodge_off, xend = x - dodge_off,
+                   y = y_bracket, yend = y_bracket - y_top * 0.015)) +
+  geom_segment(data = sig_nasa, inherit.aes = FALSE,
+               aes(x = x + dodge_off, xend = x + dodge_off,
+                   y = y_bracket, yend = y_bracket - y_top * 0.015)) +
+  # Asterisco / etiqueta de significancia
+  geom_text(data = sig_nasa, inherit.aes = FALSE,
+            aes(x = x, y = y_label, label = etiqueta), size = 6) +
+  scale_fill_manual(values = c("Control" = "#4393C3", "Experimental" = "#D6604D"),
+                    name = "Grupo") +
+  labs(x = "", y = "Esfuerzo percibido (NASA-TLX)",
+       title = "Esfuerzo percibido en condición fácil y difícil por grupo") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+
+print(sig_nasa[, c("Condicion", "p_value", "etiqueta")])
+print(p_nasa)
+ggsave("nasa_easy_hard_por_grupo.png", p_nasa, width = 8, height = 6, dpi = 150)
+cat("\n-> Guardado: nasa_easy_hard_por_grupo.png\n")
+
+
+
 

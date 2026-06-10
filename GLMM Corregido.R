@@ -72,7 +72,7 @@ write.csv(alldata.sc, "Datos/datos_long_filtrados.csv")
 ######################################
 ## Importar datos de vuelta
 
-alldata.sc <- read.csv("Datos/datos_long_filtrados.csv", header = T)
+alldata.sc <- read.csv("Datos/datos_long_glmm_filtrados.csv", header = T)
 
 
 # Excluir trials omitidos y eliminar columna índice
@@ -178,7 +178,7 @@ summary(m3)
 # Post-Hoc
 
 # Slopes de effort por grupo condicional en agent
-z<-emtrends(m1, ~ grupo | agent,
+z<-emtrends(m3, ~ grupo | agent,
             var = "c.effort")
 
 summary(z)
@@ -186,7 +186,7 @@ pairs(z, adjust = "fdr")
 
 
 # Slopes de effort por agent condicional en grupo
-z2<-emtrends(m1, ~ agent | grupo,
+z2<-emtrends(m3, ~ agent | grupo,
              var = "c.effort")
 
 summary(z2)
@@ -273,7 +273,7 @@ print(g2)
 # función de c.effort, separada por grupo y agente. Las pendientes z/z2
 # corresponden a la inclinación de cada curva.
 
-pred_eff <- ggpredict(m1, terms = c("c.effort [all]", "agent", "grupo"))
+pred_eff <- ggpredict(m3, terms = c("c.effort [all]", "agent", "grupo"))
 
 g3 <- plot(pred_eff) +
   scale_colour_discrete(labels = lab_agent, name = "Agente") +
@@ -382,5 +382,167 @@ dataset_completo <- pasar %>%
   left_join(params, by = "sub")
 
 write.csv(dataset_completo, "Datos/dataset_full_v2.csv", row.names = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###################################
+
+
+### GLMM success ####
+
+alldata.sc_a <- subset(alldata.sc, decision!= 0)
+
+
+m1 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1 + c.effort + c.reward|sub)
+            ,data=alldata.sc_a,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",
+                                   optCtrl=list(maxfun=2e5)))
+
+m2 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1|sub)
+            ,data=alldata.sc_a,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",
+                                   optCtrl=list(maxfun=2e5)))
+
+m3 <- glmer(success ~ c.reward*agent*c.effort*grupo + (1 + c.reward + c.effort|sub)
+            ,data=alldata.sc_a,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",
+                                   optCtrl=list(maxfun=2e5)))
+m4 <- glmer(success ~ c.reward*agent*c.effort*grupo + (1|sub)
+            ,data=alldata.sc_a,
+            family=binomial,
+            control = glmerControl(optimizer = "bobyqa",
+                                   optCtrl=list(maxfun=2e5)))
+
+# Modelo comparison
+
+model_comp_success <- anova(m1, m2, m3, m4)
+
+
+
+plot(ggpredict(m2, terms = c("c.effort", "agent", "grupo"))) +
+  ggtitle("Modelo 2") +
+  ylab("Probabilidad predicha de decisión") +
+  xlab("Nivel de esfuerzo (c.effort)") +
+  scale_colour_discrete(labels = c("0" = "Self", "1" = "Other"), name = "Agente") +
+  facet_wrap(~facet, labeller = labeller(facet = c("0" = "Control", "1" = "Experimental"))) +
+  theme_minimal()
+
+
+
+
+
+
+
+#POST HOC modelo succes#### 
+# NOTA: el mensaje "Results may be misleading due to involvement in interactions"
+# NO es un error. Aparece porque 'grupo' y 'agent' interactúan con las covariables
+# continuas c.reward y c.effort. emmeans promedia esas covariables en su media (= 0,
+# porque están estandarizadas con scale()), de modo que estas medias marginales
+# representan la probabilidad de éxito a recompensa y esfuerzo promedio. El cálculo
+# es correcto; fijamos las covariables con 'at' para dejarlo explícito y documentado.
+
+em_grupo_en_agent <- emmeans(m2, ~ grupo | agent,
+                             type = "response",
+                             at = list(c.reward = 0, c.effort = 0))
+pairs(em_grupo_en_agent)
+
+summary(m2)
+
+
+slopes_success_m2 <- emtrends(m2,~ grupo*agent,
+                              var = "c.reward")
+pairs(slopes_success_m2)
+
+
+
+
+
+# Grilla completa grupo x agente para los gráficos (covariables fijadas en su media)
+df_success_m2 <- as.data.frame(
+  emmeans(m2, ~ grupo * agent,
+          type = "response",
+          at = list(c.reward = 0, c.effort = 0))
+)
+
+# 'grupo' y 'agent' vienen como numéricos (0/1) al leer el CSV; los pasamos a factor
+# para que las escalas discretas y de color de ggplot funcionen correctamente.
+df_success_m2$grupo <- factor(df_success_m2$grupo)
+df_success_m2$agent <- factor(df_success_m2$agent)
+
+
+
+
+
+#graficos success POST HOC 
+ggplot(df_success_m2, aes(x = agent, y = prob, color = grupo)) +
+  geom_point(
+    position = position_dodge(width = 0.3),
+    size = 3
+  ) +
+  geom_errorbar(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    width = 0.15,
+    position = position_dodge(width = 0.3)
+  ) +
+  scale_x_discrete(
+    labels = c("0" = "Self", "1" = "Other")
+  ) +
+  scale_color_manual(
+    values = c("0" = "#1F77B4", "1" = "#D62728"), # Puedes ajustar los colores aquí
+    labels = c("0" = "Control", "1" = "Vulnerable"),
+    name = "Grupo"
+  ) +
+  labs(
+    x = "Agente",
+    y = "Probabilidad predicha de éxito",
+    color = "Grupo"
+  ) +
+  theme_light(base_size = 14)
+
+
+ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
+  geom_col(
+    position = position_dodge(width = 0.6),
+    width = 0.5, color = "black"
+  ) +
+  geom_errorbar(
+    aes(ymin = asymp.LCL, ymax = asymp.UCL),
+    width = 0.15, color = "black",
+    position = position_dodge(width = 0.6)
+  ) +
+  scale_x_discrete(
+    labels = c("0" = "Control", "1" = "Vulnerable")
+  ) +
+  scale_fill_manual(
+    values = c("0" = "#1F77B4", "1" = "#D62728"),
+    labels = c("0" = "Self", "1" = "Other"),
+    name = "Agente"
+  ) +
+  labs(
+    x = "Grupo",
+    y = "Probabilidad de éxito"
+  ) +
+  theme_classic(base_size = 14)
+
+
+
+
+
+
 
 

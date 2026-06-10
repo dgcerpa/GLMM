@@ -13,7 +13,7 @@ library(Hmisc)
 ## Test de normalidad Shapiro-Wilk
 
 # Cargar datos
-df <- read.csv("dataset_full.csv", stringsAsFactors = FALSE)
+df <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
 
 
 

@@ -18,7 +18,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("Datos/dataset_full.csv", stringsAsFactors = FALSE)
+df <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "1")
