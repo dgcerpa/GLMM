@@ -323,7 +323,7 @@ data.self.sc[,numcols] <- scale(data.self.sc[,numcols])
 
 
 # GLMM por agente para estimar slopes individuales
-lmself_rs.sc<-glmer(decision ~ c.reward * grupo + c.effort * grupo + (1+c.reward + c.effort|sub),
+lmself_rs.sc<-glmer(decision ~ c.reward + c.effort + (1+c.reward + c.effort|sub),
                     data=data.self.sc,
                     family=binomial,
                     control = glmerControl(optimizer = "bobyqa",
