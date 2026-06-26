@@ -18,7 +18,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("library(patchwork)", stringsAsFactors = FALSE)
+df <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "0")
@@ -32,11 +32,12 @@ vars_usadas <- c("grupo",
                  "MAIA_Percibir_DIRd", "MAIA_AusenciaDistraccion_DIRd",
                  "MAIA_AusenciaPreocupacion_DIRd", "MAIA_RegulacionAtencion_DIRd",
                  "MAIA_ConcienciaEmocional_DIRd", "MAIA_Autorregulacion_DIRd", 
-                 "MAIA_EscuchaCuerpo_DIRd", "MAIA_Confianza_DIRd")
+                 "MAIA_EscuchaCuerpo_DIRd", "MAIA_Confianza_DIRd", "Fatigue_diff")
 
 df_mod <- df %>%
-  select(all_of(vars_usadas)) %>%
+  dplyr::select(all_of(vars_usadas)) %>%
   mutate(across(everything(), as.numeric))
+
 
 
 
@@ -81,7 +82,9 @@ m2 <- lm(diff_effort ~ MAIA_Percibir_DIRd * grupo + MAIA_AusenciaDistraccion_DIR
            MAIA_ConcienciaEmocional_DIRd * grupo + MAIA_Autorregulacion_DIRd * grupo +
            MAIA_EscuchaCuerpo_DIRd * grupo + MAIA_Confianza_DIRd * grupo,
          data = df_mod)
+
 print(summary(m2))
+
 
 
 
