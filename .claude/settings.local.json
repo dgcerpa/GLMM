@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(awk *)",
-      "Bash(grep -cE \"^\\\\\"ID\\\\\"$\")"
+      "Bash(grep -cE \"^\\\\\"ID\\\\\"$\")",
+      "PowerShell(& 'C:\\\\Program Files\\\\R\\\\R-4.5.3\\\\bin\\\\Rscript.exe' 'C:\\\\Users\\\\yangy\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-yangy-Desktop-GLMM\\\\4f48b7d6-d737-4c53-8bbb-fcd5fced43ef\\\\scratchpad\\\\peek.R')",
+      "Bash(Rscript --version)",
+      "PowerShell(& 'C:\\\\Program Files\\\\R\\\\R-4.5.3\\\\bin\\\\Rscript.exe' 'C:\\\\Users\\\\yangy\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-yangy-Desktop-GLMM\\\\4f48b7d6-d737-4c53-8bbb-fcd5fced43ef\\\\scratchpad\\\\test_run.R')"
     ]
   }
 }
