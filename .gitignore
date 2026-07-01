@@ -48,3 +48,39 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 .positai
+
+# ==========================================================
+# Datos sensibles / crudos - NO versionar
+# ==========================================================
+
+# Todos los CSV (datos crudos, encuestas, exports) por defecto
+*.csv
+
+# Dataset final y datasets completos
+dataset_full_final.csv
+dataset_full*.csv
+
+# Otros formatos de datos comunes
+*.xlsx
+*.xls
+*.sav
+*.dta
+*.parquet
+*.feather
+# .rds: objetos R serializados (pueden contener datos crudos)
+*.rds
+
+# Carpetas de datos
+data/
+Datos/
+datos/
+raw_data/
+
+# Credenciales / configuracion sensible
+*.env
+secrets.*
+config_secrets.*
+
+# Si necesitas versionar un CSV concreto (ej. datos ya anonimizados),
+# excluyelo explicitamente con:
+#   !ruta/al/archivo_anonimizado.csv
