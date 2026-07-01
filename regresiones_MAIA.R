@@ -21,7 +21,7 @@ library(ggeffects)
 df <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
-# df <- subset(df, grupo != "0")
+df <- subset(df, grupo == "1")
 
 
 # Subset analítico (casos completos en todas las variables usadas)
@@ -49,12 +49,16 @@ m1 <- lm(diff_effort ~ MAIA_DIRt, data = df_mod)
 print(summary(m1))
 
 
+
+
 ## Modelo 2: 8 subescalas MAIA
 m2 <- lm(diff_effort ~ MAIA_Percibir_DIRd + MAIA_AusenciaDistraccion_DIRd +
            MAIA_AusenciaPreocupacion_DIRd + MAIA_RegulacionAtencion_DIRd +
            MAIA_ConcienciaEmocional_DIRd + MAIA_Autorregulacion_DIRd +
-           MAIA_EscuchaCuerpo_DIRd + MAIA_Confianza_DIRd,
+           MAIA_EscuchaCuerpo_DIRd + MAIA_Confianza_DIRd + Fatigue_diff,
          data = df_mod)
+
+
 print(summary(m2))
 
 
@@ -74,6 +78,9 @@ plot(ggpredict(m1, terms = c("MAIA_DIRt", "grupo"))) +
   xlab("MAIA Total") +
   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
   theme_minimal()
+
+
+
 
 
 ## Modelo 2: 8 subescalas MAIA

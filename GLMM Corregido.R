@@ -547,26 +547,10 @@ ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
 
 
 
+########################################
+## Actualizar datos
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Librerías
 
 library(readr)   # read_csv / write_csv
 library(readxl)  # read_excel
@@ -579,7 +563,7 @@ ruta_modelos <- "Datos/Modelos Comp/2k1b_modelos.csv"
 ruta_params  <- "Datos/Modelos Comp/params_2k1b_all_families.xlsx"
 ruta_salida  <- "dataset_full_final.csv"   # sobrescribe el original
 
-# ELIMINAR columnas 
+# ELIMINAR columnas antiguas
 dataset <- read_csv(ruta_dataset, show_col_types = FALSE)
 
 cols_a_eliminar <- c("p_2k1b_k_self", "p_2k1b_k_other",
