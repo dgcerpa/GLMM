@@ -45,7 +45,7 @@ dataset_full %>%
 
 
 #########################
-## Correlaciones entre parámetros del modelo parabólico 2K1B y escalas psicológicas/clínicas
+## Correlaciones entre parámetros NASA y escalas psicológicas/clínicas
 
 # Librerías
 
@@ -259,7 +259,6 @@ print(sig_nasa[, c("Condicion", "p_value", "etiqueta")])
 print(p_nasa)
 ggsave("nasa_easy_hard_por_grupo.png", p_nasa, width = 8, height = 6, dpi = 150)
 cat("\n-> Guardado: nasa_easy_hard_por_grupo.png\n")
-
 
 
 

@@ -166,7 +166,23 @@ plot(ggpredict(m3, terms = c("c.effort", "agent", "grupo"))) +
 
 # Resumen de modelos seleccionados
 # summary(m1)
+
 summary(m3)
+car::Anova(m3, type = "II")
+isSingular(m3)
+performance::r2_nakagawa(m3)
+anova(m1, m2, m3, m4)
+
+
+# (1) Slopes por grupo, dentro de cada agent
+z_grupo_en_agent <- emtrends(m3, ~ grupo | agent, var = "c.effort")
+summary(z_grupo_en_agent, infer = c(TRUE, TRUE))
+pairs(z_grupo_en_agent, adjust = "fdr")
+
+# (2) Slopes por agent, dentro de cada grupo
+z_agent_en_grupo <- emtrends(m3, ~ agent | grupo, var = "c.effort")
+summary(z_agent_en_grupo, infer = c(TRUE, TRUE))
+pairs(z_agent_en_grupo, adjust = "fdr")
 
 
 

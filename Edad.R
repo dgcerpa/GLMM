@@ -30,7 +30,7 @@ write.csv(df, "dataset_full_v2_con_sexo_edad.csv", row.names = FALSE)
 #########################
 ## Descriptivos demográficos
 
-df    <- read.csv("dataset_full_v2_con_sexo_edad.csv", stringsAsFactors = FALSE)
+df <- read.csv("dataset_full_v2_con_sexo_edad.csv", stringsAsFactors = FALSE)
 
 
 
@@ -40,9 +40,5 @@ sd(df$Edad, na.rm = TRUE)     # DE
 
 # Conteo por sexo
 table(df$Sexo)
-
-
-
-
 
 

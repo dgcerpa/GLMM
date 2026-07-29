@@ -172,6 +172,9 @@ cat("\nVariables normales segun K-S (p > 0.05):",
     sum(ks_result$normal_p05, na.rm = TRUE), "/",
     sum(!is.na(ks_result$normal_p05)), "\n")
 
+# NASA Diff NO es normal
+# Effort Other NO es normal
+
 # Guardar tabla
 # write.csv(ks_result,
 #           "Datos/ks_normalidad.csv",
