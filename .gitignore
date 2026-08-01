@@ -81,6 +81,7 @@ raw_data/
 secrets.*
 config_secrets.*
 
-# Si necesitas versionar un CSV concreto (ej. datos ya anonimizados),
-# excluyelo explicitamente con:
-#   !ruta/al/archivo_anonimizado.csv
+
+# Excepciones: 
+!dataset_full_final.csv
+!datos_long_glmm_filtrados.csv
