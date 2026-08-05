@@ -72,7 +72,7 @@ write.csv(alldata.sc, "Datos/datos_long_filtrados.csv")
 ######################################
 ## Importar datos de vuelta
 
-alldata.sc <- read.csv("Datos/datos_long_glmm_filtrados.csv", header = T)
+alldata.sc <- read.csv("datos_long_glmm_filtrados.csv", header = T)
 
 
 # Excluir trials omitidos y eliminar columna índice
@@ -106,7 +106,7 @@ m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effo
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
-## Modelo 5: igual que m3 con solo intercept aleatorio
+## Modelo 4: igual que m3 con solo intercept aleatorio
 m4 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
             data=alldata.sc,
             family=binomial,
@@ -161,6 +161,13 @@ plot(ggpredict(m3, terms = c("c.effort", "agent", "grupo"))) +
   scale_colour_discrete(labels = c("0" = "Self", "1" = "Other"), name = "Agente") +
   facet_wrap(~facet, labeller = labeller(facet = c("grupo = 0" = "Control", "grupo = 1" = "Experimental"))) +
   theme_minimal()
+
+
+
+
+
+
+
 
 
 
