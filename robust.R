@@ -1,4 +1,4 @@
-
+|
 
 # Robust LMM: k ~ Agent * Grupo + (1|subject_id)
 # Modelos: parabólico e hiperbólico
