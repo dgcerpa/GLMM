@@ -1,3 +1,4 @@
+
 ## Merge Sexo y Edad
 # Diego Garrido Cerpa - Viña del Mar 2026
 
@@ -5,40 +6,26 @@
 
 library(tidyverse)
 
-#########################
-## Data
-
-# Cargar datos
-df    <- read.csv("Datos/dataset_full_v2.csv", stringsAsFactors = FALSE)
-parts <- read.csv("Datos/Participantes_Final_ID.csv", stringsAsFactors = FALSE)
-
-# Seleccionar id, Sexo y Edad (la columna de sexo trae paréntesis)
-parts <- parts %>%
-  select(id, Sexo = starts_with("Sexo"), Edad)
-
-#########################
-## Merge
-
-# Unir por sub (df) = id (parts); se descartan los id sin match
-df <- df %>%
-  left_join(parts, by = c("sub" = "id"))
-
-# Guardar
-write.csv(df, "dataset_full_v2_con_sexo_edad.csv", row.names = FALSE)
-
 
 #########################
 ## Descriptivos demográficos
 
-df <- read.csv("dataset_full_v2_con_sexo_edad.csv", stringsAsFactors = FALSE)
+df <- read.csv("dataset_final.csv", stringsAsFactors = FALSE)
 
-
+df_grupo_c = subset(df, grupo == "0")
+df_grupo_v = subset(df, grupo == "1")
 
 # Edad: media y desviación estándar
-mean(df$Edad, na.rm = TRUE)   # M
-sd(df$Edad, na.rm = TRUE)     # DE
+mean(df_grupo_c$Edad, na.rm = TRUE)   # M
+sd(df_grupo_c$Edad, na.rm = TRUE)     # DE
 
 # Conteo por sexo
-table(df$Sexo)
+table(df_grupo_c$Sexo)
 
+# Edad: media y desviación estándar
+mean(df_grupo_v$Edad, na.rm = TRUE)   # M
+sd(df_grupo_v$Edad, na.rm = TRUE)     # DE
+
+# Conteo por sexo
+table(df_grupo_v$Sexo)
 

@@ -56,32 +56,21 @@ rsconnect/
 # Todos los CSV (datos crudos, encuestas, exports) por defecto
 *.csv
 
-# Dataset final y datasets completos
-dataset_full_final.csv
-dataset_full*.csv
-
 # Otros formatos de datos comunes
 *.xlsx
 *.xls
-*.sav
-*.dta
-*.parquet
-*.feather
-# .rds: objetos R serializados (pueden contener datos crudos)
-*.rds
 
 # Carpetas de datos
-data/
 Datos/
-datos/
-raw_data/
+
+# Scripts que no se usan
+Scripts_Ignorados/
 
 # Credenciales / configuracion sensible
 *.env
 secrets.*
 config_secrets.*
 
-
 # Excepciones: 
-!dataset_full_final.csv
-!datos_long_glmm_filtrados.csv
+!dataset_final.csv
+!datos_glmm_filtered.csv

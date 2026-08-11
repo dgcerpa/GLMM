@@ -7,9 +7,9 @@
 ## Librerías
 
 library(tidyverse)
-library(car)        # vif()
-library(broom)      # tidy() / glance()
-library(performance) # check_model() opcional
+library(car)
+library(broom)
+library(performance)
 library(ggplot2)
 library(ggeffects)
 
@@ -18,7 +18,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
+df <- read.csv("dataset_final.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo != "1")
@@ -54,10 +54,7 @@ m2 <- lm(diff_effort ~ IFS_SeriesMotoras_DIRd + IFS_InstruccionesConflictivas_DI
            IFS_MesesAtras_DIRd + IFS_MemoriaTrabajoVisual_DIRd +
            IFS_Refranes_DIRd + IFS_ControlInhibitorioVerbal_DIRd,
          data = df_mod)
-
 print(summary(m2))
-
-
 
 
 
@@ -70,14 +67,6 @@ m1 <- lm(diff_effort ~ IFS_Total_DIRd * grupo, data = df_mod)
 print(summary(m1))
 
 
-# plot(ggpredict(m1, terms = c("MAIA_DIRt", "grupo"))) +
-#   ggtitle("Modelo 4") +
-#   ylab("Diff Effort") +
-#   xlab("MAIA Total") +
-#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-#   theme_minimal()
-
-
 ## Modelo 2: 8 subescalas IFS
 m2 <- lm(diff_effort ~ IFS_SeriesMotoras_DIRd * grupo + IFS_InstruccionesConflictivas_DIRd * grupo +
            IFS_ControlInhibitorioMotor_DIRd * grupo + IFS_RepeticionDigitosAtras_DIRd * grupo +
@@ -85,7 +74,6 @@ m2 <- lm(diff_effort ~ IFS_SeriesMotoras_DIRd * grupo + IFS_InstruccionesConflic
            IFS_Refranes_DIRd * grupo + IFS_ControlInhibitorioVerbal_DIRd * grupo,
          data = df_mod)
 print(summary(m2))
-
 
 
 
@@ -117,14 +105,6 @@ m1 <- lm(effort_other ~ IFS_Total_DIRd * grupo, data = df_mod)
 print(summary(m1))
 
 
-# plot(ggpredict(m1, terms = c("MAIA_DIRt", "grupo"))) +
-#   ggtitle("Modelo 4") +
-#   ylab("Diff Effort") +
-#   xlab("MAIA Total") +
-#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-#   theme_minimal()
-
-
 ## Modelo 2: 8 subescalas IFS
 m2 <- lm(effort_other ~ IFS_SeriesMotoras_DIRd * grupo + IFS_InstruccionesConflictivas_DIRd * grupo +
            IFS_ControlInhibitorioMotor_DIRd * grupo + IFS_RepeticionDigitosAtras_DIRd * grupo +
@@ -132,7 +112,6 @@ m2 <- lm(effort_other ~ IFS_SeriesMotoras_DIRd * grupo + IFS_InstruccionesConfli
            IFS_Refranes_DIRd * grupo + IFS_ControlInhibitorioVerbal_DIRd * grupo,
          data = df_mod)
 print(summary(m2))
-
 
 
 
@@ -145,19 +124,9 @@ m3 <- lm(diff_effort ~ SASS_DIRt, data = df_mod)
 print(summary(m3))
 
 
-
 ## Modelo 4: SASS total (diff_effort) con interacción de grupo
 m4 <- lm(diff_effort ~ SASS_DIRt * grupo, data = df_mod)
 print(summary(m4))
-
-
-plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
-  ggtitle("Correlación SASS y Diferencia de Esfuerzo") +
-  ylab("Diff Effort") +
-  xlab("SASS Total") +
-  scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-  theme_minimal()
-
 
 
 ## Modelo 3: SASS total (effort_other) sin interacción de grupo
@@ -165,16 +134,6 @@ m3 <- lm(effort_other ~ SASS_DIRt, data = df_mod)
 print(summary(m3))
 
 
-
 ## Modelo 4: SASS total (effort_other) con interacción de grupo
 m4 <- lm(effort_other ~ SASS_DIRt * grupo, data = df_mod)
 print(summary(m4))
-
-
-# plot(ggpredict(m4, terms = c("SASS_DIRt", "grupo"))) +
-#   ggtitle("Modelo 4") +
-#   ylab("Effort other") +
-#   xlab("SASS Total") +
-#   scale_colour_discrete(labels = c("0" = "Control", "1" = "Experimental"), name = "Grupo") +
-#   theme_minimal()
-
