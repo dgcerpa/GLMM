@@ -18,7 +18,7 @@ library(ggeffects)
 ## Data
 
 # Cargar datos
-df <- read.csv("dataset_full_final.csv", stringsAsFactors = FALSE)
+df <- read.csv("dataset_final.csv", stringsAsFactors = FALSE)
 
 # Filtro por grupo
 # df <- subset(df, grupo == "1")
@@ -66,6 +66,18 @@ print(summary(m2))
 ## Modelo 1: MAIA total
 m1 <- lm(diff_effort ~ MAIA_DIRt * grupo, data = df_mod)
 print(summary(m1))
+
+library(emmeans)
+
+# Post-hoc: slopes de MAIA por grupo
+trends_maia <- emtrends(m1, ~ grupo, var = "MAIA_DIRt",
+                        at = list(grupo = c(0, 1)))
+
+# Slopes por grupo con IC 95% y test contra 0
+summary(trends_maia, infer = c(TRUE, TRUE))
+
+# Contraste entre grupos (equivale al término de interacción de m1)
+pairs(trends_maia)
 
 
 ## Modelo 2: 8 subescalas MAIA

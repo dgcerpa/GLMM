@@ -1,89 +1,79 @@
 # GLMM
 
-Statistical analysis of the prosocial effort discounting task: GLMMs on trial-by-trial decisions, individual-slope extraction, regressions against psychological scales, partial correlations, mediation, robust models, and network analysis.
+Statistical analysis of the prosocial effort discounting task: generalized linear mixed models (GLMMs) on trial-by-trial decisions and task success, extraction of individual effort/reward slopes, regressions of those slopes against psychological scales, an empirical (model-free) replication of the key regressions, mediation analysis, and publication figures.
 
 ## Context
 
-Data-analysis repo for the prosocial effort task comparing a Control group vs. a Vulnerable (Experimental) group. Primary DV is `diff_effort` — the difference (Other − Self) in effort slopes extracted from a decision-level GLMM. Trial-level cleaning happens upstream in `dgcerpa/PET_Data_Cleaning`; this repo takes the cleaned outputs and runs everything downstream. Diego Garrido (analysis), Sebastián Contreras (supervisor), with contributions from Nicolás and José. Private — internal documentation, not for public distribution.
+Data-analysis repository for the prosocial effort task comparing a **Control** group against a **Vulnerable (Experimental)** group. The primary dependent variable is `diff_effort` — the difference (Other − Self) in effort slopes extracted from a decision-level GLMM. Trial-level cleaning happens upstream (in `dgcerpa/PET_Data_Cleaning`); this repository takes the resulting exports and runs everything downstream. Diego Garrido (analysis), Sebastián Contreras (supervisor), with contributions from Nicolás and José. Private — internal documentation supporting a manuscript in preparation, not for public distribution.
 
-## Analyses
+## Data
 
-Main dataset consumed by almost every script: `dataset_full_final.csv` (subject-level; 84 rows, ~120 columns including scale totals/subscales, GLMM-derived slopes, computational model parameters, and demographics).
+Two versioned datasets in the repository root feed the analyses:
+
+- **`data_glmm_filtered.csv`** — trial-level (long format). One row per retained trial, with the decision (`decision`), success (`success`), agent (`agent`: 0 = Self, 1 = Other), group (`grupo`: 0 = Control, 1 = Vulnerable), and continuous predictors z-scored under a `c.*` prefix (`c.reward`, `c.effort`, …). Produced by `Limpieza_Datos.R`.
+- **`dataset_final.csv`** — subject-level. One row per participant, holding questionnaire totals and subscales (MAIA, IRI, IFS, SASS, …), the GLMM-derived per-subject slopes (`reward_self`, `effort_self`, `reward_other`, `effort_other`, `diff_effort`, `diff_reward`), and demographics (`Edad`, `Sexo`). This is the file every subject-level script reads.
+
+## Scripts
+
+All analysis scripts live in the repository root and are grouped below by role.
+
+### Data preparation
+
+- **`Limpieza_Datos.R`** — Entry point of the pipeline. Reads the raw long-format trial export, drops subjects with more than 25% omissions on either Self or Other trials, coerces variable types, z-scores every continuous predictor (`c.*` prefix), removes omitted trials (`decision == 2`), and writes the filtered trial-level dataset (`data_glmm_filtered.csv`). It then fits per-agent random-slope GLMMs (`lmself_rs.sc`, `lmother_rs.sc`; `decision ~ c.reward + c.effort + (1 + c.reward + c.effort | sub)`), extracts each subject's `reward`/`effort` slopes, computes the Other − Self differences (`diff_effort`, `diff_reward`), and writes the per-subject slopes to `post_hoc_v2.csv`.
 
 ### Main GLMM models
 
-- **`GLMM_Corregido.R`** — Core script. Filters trials, standardizes continuous predictors (z-scores, `c.*` prefix), fits four candidate GLMMs on `decision` (`m1`–`m4`) and four on `success`, compares them via `anova()`, and runs post-hoc slope contrasts with `emtrends` / `emmeans` (FDR-adjusted). Extracts per-subject slopes (`reward_self`, `effort_self`, `reward_other`, `effort_other`, `diff_effort`, `diff_reward`) from per-agent GLMMs (`lmself_rs.sc`, `lmother_rs.sc`) and writes `post_hoc_v2.csv`. Joins slopes with questionnaire scores and computational-model parameters (`params_2k1b_all_families.xlsx`) into `dataset_full_v2.csv`. Also produces the post-hoc figures (slope forest plot, pairwise-contrast plot, predicted-probability curves) under `Figuras/`.
+- **`GLMM_Decision.R`** — Decision-level GLMM. Fits four candidate models (`m1`–`m4`) of `decision` on the `reward × agent × effort × grupo` structure with varying random-effects specifications, compares them via `anova()`, and inspects the retained model with `car::Anova`, `performance::r2_nakagawa`, and singularity checks. Post-hoc effort slopes are contrasted by group within agent and by agent within group using `emtrends` (FDR-adjusted), and `ggpredict` renders the predicted-probability curves of accepting the offer as a function of effort, faceted by group.
 
-- **`GLMM_DASS.R`** — Extends the decision GLMM with `Fatigue_diff` as a covariate and adds a scale-level LM (`diff_effort ~ MAIA_DIRt * grupo + Fatigue_diff`). Runs partial correlations `SASS_DIRt ~ diff_effort` per group controlling for `Fatigue_diff` (and for `grupo` in the pooled sample) with FDR adjustment. Includes a `residualize()` helper that residualizes MAIA subscales on `Fatigue_diff` within group before refitting the subscale-by-group interaction model.
+- **`GLMM_Success.R`** — Success-level GLMM, restricted to accepted trials (`decision == 1`). Fits four candidate models (`m1`–`m4`) of `success` on the `reward × agent × effort × grupo` structure, compares and inspects them as above, and runs post-hoc contrasts with `emmeans` / `emtrends`. Produces a grouped bar plot of the predicted probability of success by group and agent with 95% confidence intervals.
 
-### Mediation and partial correlations
+### Instrument regressions
 
-- **`modelos_unificados.R`** — Consolidated mediation/GGM script; supersedes earlier `analisis_correlaciones_parciales*.R` / `analisis_mediacion*.R` (which it documents as redundant).
-  - **CP1**: pairwise partial Pearson correlations across `{diff_effort, MAIA_DIRt, SASS_DIRt}` in the full sample.
-  - **CP2**: same partial correlations run separately in Control and Vulnerable.
-  - **CP3**: Fisher's z comparison of each edge between groups.
-  - **M1**: simple mediation `grupo → MAIA → diff_effort` (lavaan SEM, 5000 BCa bootstraps).
-  - **M2**: simple mediation `grupo → SASS → diff_effort`.
-  - **M3**: parallel mediation `grupo → {MAIA, SASS} → diff_effort` with correlated mediators.
-  - **M4**: moderated mediation (Hayes model 14) — `grupo` moderates the `b` path via SASS; reports conditional indirect effects and the moderated-mediation index.
-  - **M5**: simple mediation `MAIA → SASS → diff_effort` restricted to the Vulnerable subgroup.
-  - Also renders GGM plots (three-node network, MAIA / SASS / diff_effort) for the full sample and per group using `ggforce` + `patchwork`, plus a consolidated table of indirect effects flagged by whether the BCa CI excludes zero.
+Each script builds a subject-level analytic subset from `dataset_final.csv` and fits linear models of `diff_effort` (and `effort_other`) on an instrument's total score and its subscales, both without and with a `grupo` interaction; group slopes are followed up with `emtrends` and interaction effects are visualized with `ggeffects::ggpredict`.
 
-### Regressions by instrument
+- **`regresiones_MAIA.R`** — MAIA total and its 8 subscales (Percibir, AusenciaDistracción, AusenciaPreocupación, RegulaciónAtención, ConcienciaEmocional, Autorregulación, EscuchaCuerpo, Confianza), with `Fatigue_diff` included as a covariate in the subscale models.
+- **`regresiones_IFS.R`** — IFS total and its 8 subscales, plus SASS total models (`diff_effort` and `effort_other`), including the `SASS × grupo` interaction with type-II tests and a mean-centered refit.
+- **`regresiones_IRI.R`** — IRI total, its 4 subscales, and the derived composites `IRI_Cognitivo` (Fantasía + Toma de Perspectiva) and `IRI_Afectivo` (Preocupación Empática + Incomodidad Personal), including standalone Empathic-Concern and Perspective-Taking × group models.
+- **`regresiones_empiricas.R`** — Model-free replication of the headline regressions. Recomputes effort sensitivity directly from the trial data (`data_glmm_filtered.csv`) as the per-subject OLS slope of `decision` on the raw effort level within each agent, forming `diff_effort_emp = slope_other − slope_self`. It then refits the three regressions reported in the manuscript (MAIA, SASS, and IRI Empathic Concern, each × group) on this empirical measure and saves the three-panel figure `figure3_empirical.png`.
 
-Each script builds a subject-level analytic subset and fits LMs of `diff_effort` (and `effort_other`) on the instrument's total score and its subscales, both without and with a `grupo` interaction. `ggeffects::ggpredict` is used for interaction plots.
+### Mediation
 
-- **`regresiones_MAIA.R`** — MAIA total and its 8 subscales (Percibir, AusenciaDistraccion, AusenciaPreocupacion, RegulacionAtencion, ConcienciaEmocional, Autorregulacion, EscuchaCuerpo, Confianza). Interaction plot for MAIA total × group.
-- **`regresiones_IFS.R`** — IFS total and its 8 subscales; also includes SASS total models (`diff_effort` and `effort_other`) with the `SASS × grupo` interaction plot.
-- **`regresiones_IRI.R`** — IRI total, its 4 subscales, and derived composites `IRI_Cognitivo` (Fantasía + Toma de Perspectiva) and `IRI_Afectivo` (Preocupación Empática + Incomodidad Personal). Includes 2×2 grid plots via `patchwork` for the subscale and composite models, main-effects vs. interaction versions.
+- **`Modelo_mediacion.R`** — Mediation of the group effect. Fits per-group mediation models with `X = MAIA`, `M = diff_effort`, `Y = SASS`, controlling for `Fatigue_diff`, and estimates indirect effects via bootstrapping (`mediation::mediate`, 5000 resamples). Includes a moderated-mediation specification testing whether the paths differ between Control and Vulnerable, path diagrams (`DiagrammeR`), and the `X → M`, `M → Y`, `X → Y` scatterplots by group (`patchwork`). *Note:* the script currently points to an external working directory and slopes input; adapt the path and input file to this repository's layout before running.
 
-### Complementary analyses
+### Demographics
 
-- **`correlaciones_bivariadas.R`** — Bivariate Spearman/Pearson correlations between task-derived variables (2K1B model parameters `p_2k1b_k_self` / `k_other` / `diff_k`; effort and reward slopes) and every relevant scale total/subdimension. Emits filtered tables of significant/trend correlations plus barplots. Also produces a heatmap over a curated set of variables (slopes, IRI/MAIA totals, IRI cognitive/affective composites, NASA, MAIA subscales) with rho and significance stars inline.
+- **`Edad.R`** — Reports demographic descriptives (age mean/SD and sex counts) per group from `dataset_final.csv`.
 
-- **`Normalidad.R`** — Shapiro–Wilk and Kolmogorov–Smirnov tests on selected variables grouped by instrument (MAIA, IRI, SWBS, SASS, Effort, NASA). For each instrument, writes a PNG of faceted histograms overlaid with the theoretical Normal curve and, in the same style, Q-Q plots. Filenames: `histogramas_<INSTRUMENT>.png`.
+### Figures
 
-- **`robust.R`** — Robust LMM on the computational-model rate parameters. For each family (parabolic `p_2k1b_*` and hyperbolic `h_2k1b_*`) and for both the old and new parameter sets, fits: robust LMM (`robustlmm::rlmer`), robust LM without random effects (`MASS::rlm`), standard `lmer` (repeated-measures ANOVA via `lmerTest`), and non-parametric ANOVA (`nparLD::f1.ld.f1`). Model form: `k ~ Agent * grupo + (1|subject_id)`. Uses a helper `pvals_from_t()` to attach p-values from t-statistics.
+- **`figures.py`** — Python (matplotlib / seaborn / statsmodels) generation of the manuscript figures.
+  - **Figure 2** — Observed, model-free probability of accepting the work offer by group, beneficiary (Self/Other), and effort level (1–4), aggregated per participant and averaged across participants with ±1.96 SEM error bars, rendered as two facets (Control | Vulnerable). Saved as `figure2.png`.
+  - **Figure 3** — Three OLS interaction panels (`diff_effort ~ scale × grupo`) for IRI Empathic Concern, MAIA, and SASS, with 95% confidence bands per group. Saved as `figure3.png`.
 
-- **`analisis_garcia.R`** — Network analysis of the residualized data. Residualizes selected MAIA subscales (and, optionally, `diff_effort`) on covariates (`diff_reward`, `AIM_num`, `diff_success`, `Fatigue_pre_7`, `ASSIST_DIRt`, `IFS_Total_DIRd`, `DASS21_depresion_DIRd`) within group. Estimates EBICglasso networks per group with `qgraph` / `bootnet`, plots them side by side, and runs `NetworkComparisonTest::NCT` to compare global structure, global strength, and centrality (strength, betweenness) between Control and Vulnerable with FDR adjustment.
-
-### Data pipeline
-
-- **`fatigue_nasa.R`** — Extracts Fatigue (pre / post / diff) and NASA-TLX effort ratings (easy, hard, diff) from `datos_limpios.csv`, joins with the subject/group reference from `dataset_full_v2.csv`, writes `fatigue_nasa.csv`, and then merges those variables back into `dataset_full_final.csv`. Second half runs the same bivariate-correlation machinery as `correlaciones_bivariadas.R` but with NASA variables as the DVs, and produces a NASA easy-vs-hard barplot by group with t-tests and significance brackets.
-
-- **`Edad.R`** — Merges `Sexo` and `Edad` from `Participantes_Final_ID.csv` into the main dataset (`dataset_full_v2.csv`) and reports demographic descriptives (age mean/SD, sex counts).
-
-### Output folders
-
-- **`Figuras/`** — Created by `GLMM_Corregido.R`. Contains the three post-hoc figures: `posthoc_slopes.png`, `posthoc_contrastes.png`, `posthoc_curvas.png`.
+  Figure assets are collected under `Figuras/`.
 
 ## How to run
 
-Suggested execution order when rebuilding results from scratch:
+Open the project in RStudio (double-click `GLMM.Rproj`) so the working directory and relative paths resolve correctly. Suggested execution order when rebuilding results from scratch:
 
-1. **Upstream cleaning** (in `dgcerpa/PET_Data_Cleaning`) produces `datos_long_glmm_seba.csv`, `datos_limpios.csv`, and the subject-level questionnaire file.
-2. **Data pipeline** — run in this order:
-   1. `GLMM_Corregido.R` — fits the main GLMMs, extracts per-subject slopes, and writes `dataset_full_v2.csv`.
-   2. `Edad.R` — appends `Sexo` and `Edad`.
-   3. `fatigue_nasa.R` — appends Fatigue and NASA variables, producing `dataset_full_final.csv` (the file every downstream script reads).
-3. **Assumption checks** — `Normalidad.R`.
-4. **Descriptive / bivariate** — `correlaciones_bivariadas.R`.
-5. **Instrument regressions** — `regresiones_MAIA.R`, `regresiones_IFS.R`, `regresiones_IRI.R` (any order).
-6. **GLMM with covariates** — `GLMM_DASS.R`.
-7. **Mediation / GGM** — `modelos_unificados.R`.
-8. **Robust models** — `robust.R`.
-9. **Network analysis** — `analisis_garcia.R`.
-
-Open the project in RStudio (double-click the `.Rproj` file, or `open *.Rproj` from a shell) so working directory and file paths resolve correctly.
+1. **`Limpieza_Datos.R`** — produces `data_glmm_filtered.csv` (trial-level) and `post_hoc_v2.csv` (per-subject slopes). The subject-level slopes are consolidated with questionnaire and demographic data into `dataset_final.csv`, which the downstream scripts consume.
+2. **Trial-level models** — `GLMM_Decision.R`, then `GLMM_Success.R`.
+3. **Instrument regressions** — `regresiones_MAIA.R`, `regresiones_IFS.R`, `regresiones_IRI.R` (any order), and `regresiones_empiricas.R` for the model-free replication.
+4. **Mediation** — `Modelo_mediacion.R` (after adapting its paths).
+5. **Demographics** — `Edad.R`.
+6. **Figures** — `figures.py` (Figures 2 and 3); `figure3_empirical.png` is produced by `regresiones_empiricas.R`.
 
 ## Dependencies
 
-R packages used across the scripts:
+**R packages**
 
-- Data / plotting: `tidyverse`, `dplyr`, `ggplot2`, `readxl`, `patchwork`, `ggforce`, `ggcorrplot`, `corrplot`
-- Mixed models: `lme4`, `lmerTest`, `lmtest`
+- Data / plotting: `tidyverse`, `readxl`, `ggplot2`, `patchwork`, `ggcorrplot`, `corrplot`
+- Mixed models: `lme4` (`lmerTest` for the mediation script's namespace preferences)
 - Model tooling: `car`, `broom`, `performance`, `ggeffects`, `emmeans`
-- Correlations / SEM: `Hmisc`, `ppcor`, `lavaan`
-- Robust / non-parametric: `robustlmm`, `sfsmisc`, `MASS`, `nparLD`
-- Networks: `mgm`, `huge`, `bootnet`, `NetworkComparisonTest`, `corpcor`, `psychonetrics`, `qgraph`, `psych`, `skimr`
+- Mediation / SEM: `mediation`, `lavaan`, `boot`, `corpcor`, `psych`, `skimr`, `MASS`, `purrr`, `tidyr`
+- Diagrams: `DiagrammeR`, `semPlot`
 - Namespace management: `conflicted`
+
+**Python packages** (for `figures.py`)
+
+- `pandas`, `numpy`, `matplotlib`, `seaborn`, `statsmodels`

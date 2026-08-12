@@ -12,6 +12,7 @@ library(broom)
 library(performance)
 library(ggplot2)
 library(ggeffects)
+library(emmeans)
 
 
 #########################
@@ -137,3 +138,24 @@ print(summary(m3))
 ## Modelo 4: SASS total (effort_other) con interacción de grupo
 m4 <- lm(effort_other ~ SASS_DIRt * grupo, data = df_mod)
 print(summary(m4))
+
+
+
+# Post-hoc: slopes de SASS por grupo
+trends_sass <- emtrends(m4, ~ grupo, var = "SASS_DIRt",
+                        at = list(grupo = c(0, 1)))
+
+# Slopes por grupo con IC 95% y test contra 0
+summary(trends_sass, infer = c(TRUE, TRUE))
+
+# Contraste entre grupos (equivale al término de interacción)
+pairs(trends_sass)
+
+
+# Efectos principales correctos (SS tipo II ignoran las interacciones al testear los términos de menor orden)
+Anova(m4, type = "II")
+
+# Alternativa equivalente: centrar SASS y reajustar
+df_mod$SASS_c <- scale(df_mod$SASS_DIRt, center = TRUE, scale = FALSE)
+m4c <- lm(diff_effort ~ SASS_c * grupo, data = df_mod)
+summary(m4c)

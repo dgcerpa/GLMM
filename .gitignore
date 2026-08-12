@@ -61,10 +61,10 @@ rsconnect/
 *.xls
 
 # Carpetas de datos
-Datos/
+# Datos/
 
 # Scripts que no se usan
-Scripts_Ignorados/
+# Scripts_Ignorados/
 
 # Credenciales / configuracion sensible
 *.env
@@ -73,4 +73,4 @@ config_secrets.*
 
 # Excepciones: 
 !dataset_final.csv
-!datos_glmm_filtered.csv
+!data_glmm_filtered.csv
