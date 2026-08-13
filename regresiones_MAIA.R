@@ -28,7 +28,7 @@ df <- read.csv("dataset_final.csv", stringsAsFactors = FALSE)
 vars_usadas <- c("grupo",
                  "diff_effort",
                  "effort_other",
-                 "MAIA_DIRt",
+                 "MAIA_DIRt", "SASS_DIRt",
                  "MAIA_Percibir_DIRd", "MAIA_AusenciaDistraccion_DIRd",
                  "MAIA_AusenciaPreocupacion_DIRd", "MAIA_RegulacionAtencion_DIRd",
                  "MAIA_ConcienciaEmocional_DIRd", "MAIA_Autorregulacion_DIRd", 
@@ -127,5 +127,58 @@ m2 <- lm(effort_other ~ MAIA_Percibir_DIRd * grupo + MAIA_AusenciaDistraccion_DI
 print(summary(m2))
 
 
+## interaccion de 5 sub escalas (agrupar sub escalas)
+
+
+
+
+
+
+
+
+
+
+#################################
+## Modelos SASS
+
+## Modelo 3: SASS total (diff_effort) sin interacción de grupo
+m3 <- lm(diff_effort ~ SASS_DIRt, data = df_mod)
+print(summary(m3))
+
+
+## Modelo 4: SASS total (diff_effort) con interacción de grupo
+m4 <- lm(diff_effort ~ SASS_DIRt * grupo, data = df_mod)
+print(summary(m4))
+
+
+## Modelo 3: SASS total (effort_other) sin interacción de grupo
+m3 <- lm(effort_other ~ SASS_DIRt, data = df_mod)
+print(summary(m3))
+
+
+## Modelo 4: SASS total (effort_other) con interacción de grupo
+m4 <- lm(effort_other ~ SASS_DIRt * grupo, data = df_mod)
+print(summary(m4))
+
+
+
+# Post-hoc: slopes de SASS por grupo
+trends_sass <- emtrends(m4, ~ grupo, var = "SASS_DIRt",
+                        at = list(grupo = c(0, 1)))
+
+# Slopes por grupo con IC 95% y test contra 0
+summary(trends_sass, infer = c(TRUE, TRUE))
+
+# Contraste entre grupos (equivale al término de interacción)
+pairs(trends_sass)
+
+
+# Efectos principales correctos (SS tipo II ignoran las interacciones al testear los términos de menor orden)
+Anova(m4, type = "II")
+
+# Alternativa equivalente: centrar SASS y reajustar
+df_mod$SASS_c <- scale(df_mod$SASS_DIRt, center = TRUE, scale = FALSE)
+m4c <- lm(diff_effort ~ SASS_c * grupo, data = df_mod)
+summary(m4c)
 
 

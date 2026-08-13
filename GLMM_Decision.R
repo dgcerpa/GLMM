@@ -20,7 +20,7 @@ library(performance)
 ######################################
 ## Import Data
 
-alldata.sc <- read.csv("datos_long_glmm_filtrados.csv", header = T)
+alldata.sc <- read.csv("data_glmm_filtered.csv", header = T)
 alldata.sc <- subset(alldata.sc, select = -c(X))
 
 
@@ -29,28 +29,28 @@ alldata.sc <- subset(alldata.sc, select = -c(X))
 ### GLMM
 
 ## Model 1
-m1 <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1 + c.effort + c.reward|sub),
+m1 <- glmer(decision ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1 + c.effort + c.reward|sub),
             data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
 ## Model 2
-m2 <- glmer(decision ~ c.reward*agent*c.effort*grupo + (1|sub),
+m2 <- glmer(decision ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1|sub),
             data = alldata.sc,
             family = binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=2e5)))
 
 
 ## Model 3
-m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward|sub),
+m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_diff + (1 + c.effort + c.reward|sub),
             data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
 
 ## Model 4
-m4 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1|sub),
+m4 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_diff + (1|sub),
             data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))

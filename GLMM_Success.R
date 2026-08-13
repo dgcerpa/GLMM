@@ -1,8 +1,6 @@
 
-
 ## GLMM: General Linear Mixed Models of Success on Experimental Task
 # Diego Garrido Cerpa - Viña del Mar 2026
-
 
 ## Librerías
 
@@ -20,9 +18,8 @@ library(performance)
 ######################################
 ## Import Data
 
-alldata.sc <- read.csv("datos_long_glmm_filtrados.csv", header = T)
+alldata.sc <- read.csv("data_glmm_filtered.csv", header = T)
 alldata.sc <- subset(alldata.sc, select = -c(X))
-
 
 
 ###################################
@@ -31,28 +28,28 @@ alldata.sc <- subset(alldata.sc, select = -c(X))
 alldata.sc_a <- subset(alldata.sc, decision == 1)
 
 ## Model 1
-m1 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1 + c.effort + c.reward|sub)
+m1 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + Fatigue_diff + (1 + c.effort + c.reward|sub)
             ,data=alldata.sc_a,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa",
                                    optCtrl=list(maxfun=2e5)))
 
 ## Model 2
-m2 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + (1|sub)
+m2 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + Fatigue_diff + (1|sub)
             ,data=alldata.sc_a,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa",
                                    optCtrl=list(maxfun=2e5)))
 
 ## Model 3
-m3 <- glmer(success ~ c.reward*agent*c.effort*grupo + (1 + c.reward + c.effort|sub)
+m3 <- glmer(success ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1 + c.reward + c.effort|sub)
             ,data=alldata.sc_a,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa",
                                    optCtrl=list(maxfun=2e5)))
 
 ## Model 4
-m4 <- glmer(success ~ c.reward*agent*c.effort*grupo + (1|sub)
+m4 <- glmer(success ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1|sub)
             ,data=alldata.sc_a,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa",
@@ -93,7 +90,7 @@ df_success_m2$agent <- factor(df_success_m2$agent)
 
 
 # 
-ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
+p1 = ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
   geom_col(position = position_dodge(width = 0.6),
            width = 0.5, color = "black") +
   geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL),
@@ -106,4 +103,7 @@ ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
   labs(x = "Grupo",
        y = "Probabilidad de éxito") +
   theme_classic(base_size = 14)
+
+print(p1)
+
 

@@ -1,13 +1,12 @@
 
-## Merge Sexo y Edad
-# Diego Garrido Cerpa - Viña del Mar 2026
+# Sexo y Edad
+## Diego Garrido Cerpa - Viña del Mar 2026
 
 ## Librerías
 
 library(tidyverse)
 
 
-#########################
 ## Descriptivos demográficos
 
 df <- read.csv("dataset_final.csv", stringsAsFactors = FALSE)
@@ -28,4 +27,3 @@ sd(df_grupo_v$Edad, na.rm = TRUE)     # DE
 
 # Conteo por sexo
 table(df_grupo_v$Sexo)
-
