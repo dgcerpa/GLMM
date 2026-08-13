@@ -210,9 +210,5 @@ ggsave("figure3_empirical.png", fig3_emp,
 
 
 
-
-
 t.test(diff_effort_emp ~ grupo, data = df_emp)
-
-
 wilcox.test(diff_effort_emp ~ grupo, data = df_emp)
