@@ -197,5 +197,5 @@ fig2 <- (p_A + p_B) +
   theme(plot.tag = element_text(face = "bold", size = 14))
 
 print(fig2)
-# ggsave("figure2.png", fig2, width = 9.5, height = 4.2, dpi = 600, bg = "white")
+ggsave("figure2.png", fig2, width = 9.5, height = 4.2, dpi = 600, bg = "white")
 

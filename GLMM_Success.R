@@ -180,8 +180,7 @@ p1 <- ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
   geom_text(data = sig_between, inherit.aes = FALSE,
             aes(x = (x_left + x_right)/2, y = y_label, label = etiqueta), size = 5) +
   scale_x_discrete(labels = c("0" = "Control", "1" = "Vulnerable")) +
-  scale_fill_manual(values = c("0" = "#1F77B4", "1" = "#D62728"),
-                    labels = c("0" = "Self", "1" = "Other"),
+                    labels = c("0" = "Self", "1" = "Other",
                     name = "Agente") +
   scale_color_manual(values = c("0" = "#1F77B4", "1" = "#D62728"),
                      guide = "none") +
