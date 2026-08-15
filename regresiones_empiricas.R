@@ -29,13 +29,23 @@ slopes_emp <- long %>%
          slope_emp_other = slope_emp_1) %>%
   mutate(diff_effort_emp = slope_emp_other - slope_emp_self)
 
-# Merge con cuestionarios
-df_emp <- read.csv("dataset_final.csv", stringsAsFactors = FALSE) %>%
-  select(sub, grupo, MAIA_DIRt, SASS_DIRt, Fatigue_diff) %>%
+# 1) Cargar cuestionarios y construir IRI cognitivo y afectivo
+cuestionarios <- read.csv("dataset_final.csv", stringsAsFactors = FALSE) %>%
+  mutate(across(c(IRI_Fantasia_DIRd, IRI_TomaPerspectiva_DIRd,
+                  IRI_PreocupacionEmpatica_DIRd, IRI_IncomodidadPersonal_DIRd),
+                as.numeric),
+         IRI_Cognitivo = IRI_Fantasia_DIRd + IRI_TomaPerspectiva_DIRd,
+         IRI_Afectivo  = IRI_PreocupacionEmpatica_DIRd + IRI_IncomodidadPersonal_DIRd)
+
+
+# 2) Seleccionar variables necesarias y unir con los slopes empíricos
+df_emp <- cuestionarios %>%
+  select(sub, grupo, Fatigue_diff,
+         MAIA_DIRt, SASS_DIRt,
+         IRI_DIRt, IRI_Cognitivo, IRI_Afectivo) %>%
   left_join(slopes_emp, by = "sub") %>%
   mutate(across(everything(), as.numeric)) %>%
   drop_na()
-
 
 
 ###################################
@@ -63,105 +73,36 @@ print(cor.test(~ SASS_DIRt + diff_effort_emp, data = subset(df_emp, grupo == 0))
 print(cor.test(~ SASS_DIRt + diff_effort_emp, data = subset(df_emp, grupo == 1)))
 
 
-###################################
-## Figura 2: proporción empírica de aceptar por nivel de esfuerzo
+## Modelo 3: IRI total, cognitivo y afectivo
 
-COL_SELF       <- "#8AA624"
-COL_OTHER      <- "#6A4C93"
-COL_CONTROL    <- "#E76F51"
-COL_VULNERABLE <- "#2A9D8F"
-
-# Agregación: proporción por sujeto en cada celda, luego media y SEM entre sujetos
-p_accept_subject <- long %>%
-  group_by(sub, grupo, agent, effort_level) %>%
-  summarise(p_accept = mean(decision), .groups = "drop") %>%
-  mutate(Agent = factor(agent, levels = c(0, 1), labels = c("Self", "Other")),
-         Group = factor(grupo, levels = c(0, 1), labels = c("Control", "Vulnerable")))
-
-p_accept_cell <- p_accept_subject %>%
-  group_by(Group, Agent, effort_level) %>%
-  summarise(mean = mean(p_accept),
-            sem  = sd(p_accept) / sqrt(n()),
-            .groups = "drop") %>%
-  mutate(lo = mean - 1.96 * sem,
-         hi = mean + 1.96 * sem)
+## Modelo 3a: IRI total
+m_iri <- lm(diff_effort_emp ~ IRI_DIRt * grupo + Fatigue_diff, data = df_emp)
+print(summary(m_iri))
+print(Anova(m_iri, type = "II"))
+trends <- emtrends(m_iri, ~ grupo, var = "IRI_DIRt", at = list(grupo = c(0, 1)))
+print(summary(trends, infer = c(TRUE, TRUE)))
+print(pairs(trends))
+print(cor.test(~ IRI_DIRt + diff_effort_emp, data = subset(df_iri, grupo == 0)))
+print(cor.test(~ IRI_DIRt + diff_effort_emp, data = subset(df_iri, grupo == 1)))
 
 
-## Versión 1: Panel A (curvas) + Panel B (distribución de diff_effort_emp)
-
-p_A <- ggplot(p_accept_cell, aes(x = effort_level, y = mean,
-                                 color = Agent, fill = Agent)) +
-  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.20, color = NA) +
-  geom_line(linewidth = 1.2) +
-  facet_wrap(~ Group) +
-  scale_color_manual(values = c("Self" = COL_SELF, "Other" = COL_OTHER)) +
-  scale_fill_manual(values  = c("Self" = COL_SELF, "Other" = COL_OTHER)) +
-  scale_x_continuous(breaks = 1:4) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1),
-                     limits = c(0.5, 1.0)) +
-  labs(x = "Effort level", y = "P(accept work offer)",
-       color = NULL, fill = NULL) +
-  theme_classic(base_size = 12) +
-  theme(legend.position = "bottom",
-        strip.background = element_blank(),
-        strip.text = element_text(face = "bold", size = 11))
-
-df_dist <- df_emp %>%
-  mutate(Group = factor(grupo, levels = c(0, 1), labels = c("Control", "Vulnerable")))
-
-p_B <- ggplot(df_dist, aes(x = Group, y = diff_effort_emp,
-                           color = Group, fill = Group)) +
-  geom_violin(alpha = 0.35, trim = FALSE, width = 0.7, linewidth = 0.4) +
-  geom_boxplot(width = 0.12, alpha = 0.85, outlier.shape = NA,
-               color = "black", linewidth = 0.4) +
-  geom_jitter(width = 0.06, alpha = 0.7, size = 1.5) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey40", linewidth = 0.4) +
-  scale_color_manual(values = c("Control" = COL_CONTROL, "Vulnerable" = COL_VULNERABLE)) +
-  scale_fill_manual(values  = c("Control" = COL_CONTROL, "Vulnerable" = COL_VULNERABLE)) +
-  labs(x = NULL, y = "Effort Difference (Other \u2212 Self)") +
-  theme_classic(base_size = 12) +
-  theme(legend.position = "none")
-
-fig2_v1 <- (p_A + p_B) +
-  plot_layout(widths = c(1.6, 1)) +
-  plot_annotation(tag_levels = "A") &
-  theme(plot.tag = element_text(face = "bold", size = 14))
-
-print(fig2_v1)
-ggsave("figure2_empirical_v1.png", fig2_v1,
-       width = 9.5, height = 4.2, dpi = 600, bg = "white")
-
-
-## Versión 2: solo Panel A, con puntos individuales por sujeto
-
-# Offset horizontal por agente para reducir overlap entre puntos Self y Other
-p_accept_subject <- p_accept_subject %>%
-  mutate(x_offset = effort_level + ifelse(agent == 0, -0.12, 0.12))
-
-fig2_v2 <- ggplot(p_accept_cell, aes(x = effort_level, y = mean,
-                                     color = Agent, fill = Agent)) +
-  geom_jitter(data = p_accept_subject,
-              aes(x = x_offset, y = p_accept),
-              width = 0.05, height = 0, alpha = 0.30, size = 1.2) +
-  geom_ribbon(aes(ymin = lo, ymax = hi), alpha = 0.25, color = NA) +
-  geom_line(linewidth = 1.2) +
-  facet_wrap(~ Group) +
-  scale_color_manual(values = c("Self" = COL_SELF, "Other" = COL_OTHER)) +
-  scale_fill_manual(values  = c("Self" = COL_SELF, "Other" = COL_OTHER)) +
-  scale_x_continuous(breaks = 1:4) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1),
-                     limits = c(0, 1)) +
-  labs(x = "Effort level", y = "P(accept work offer)",
-       color = NULL, fill = NULL) +
-  theme_classic(base_size = 12) +
-  theme(legend.position = "bottom",
-        strip.background = element_blank(),
-        strip.text = element_text(face = "bold", size = 11))
-
-print(fig2_v2)
-ggsave("figure2_empirical_v2.png", fig2_v2,
-       width = 7.5, height = 4.2, dpi = 600, bg = "white")
-
+## Modelo 3b: IRI cognitivo + IRI afectivo
+m_iri_ca <- lm(diff_effort_emp ~ IRI_Cognitivo * grupo + IRI_Afectivo * grupo + Fatigue_diff,
+               data = df_emp)
+print(summary(m_iri_ca))
+print(Anova(m_iri_ca, type = "II"))
+# Pendientes por grupo para cada componente
+trends_cog <- emtrends(m_iri_ca, ~ grupo, var = "IRI_Cognitivo", at = list(grupo = c(0, 1)))
+print(summary(trends_cog, infer = c(TRUE, TRUE)))
+print(pairs(trends_cog))
+trends_afe <- emtrends(m_iri_ca, ~ grupo, var = "IRI_Afectivo", at = list(grupo = c(0, 1)))
+print(summary(trends_afe, infer = c(TRUE, TRUE)))
+print(pairs(trends_afe))
+# Correlaciones bivariadas por grupo
+print(cor.test(~ IRI_Cognitivo + diff_effort_emp, data = subset(df_iri, grupo == 0)))
+print(cor.test(~ IRI_Cognitivo + diff_effort_emp, data = subset(df_iri, grupo == 1)))
+print(cor.test(~ IRI_Afectivo + diff_effort_emp, data = subset(df_iri, grupo == 0)))
+print(cor.test(~ IRI_Afectivo + diff_effort_emp, data = subset(df_iri, grupo == 1)))
 
 
 ###################################
@@ -208,7 +149,3 @@ ggsave("figure3_empirical.png", fig3_emp,
        width = 7.5, height = 3.8, dpi = 600, bg = "white")
 
 
-
-
-t.test(diff_effort_emp ~ grupo, data = df_emp)
-wilcox.test(diff_effort_emp ~ grupo, data = df_emp)
