@@ -16,9 +16,10 @@ library(corrplot)
 library(emmeans)
 library(performance)
 library(patchwork)
+library(ggplot2)
 
 
-######################################
+######################################################
 ## Import Data
 
 alldata.sc <- read.csv("data_glmm_filtered.csv", header = T)
@@ -153,7 +154,7 @@ diff_sig <- data.frame(
   x_start   = 1,
   x_end     = 2,
   y_bracket = diff_y_top * 1.9,
-  y_label   = diff_y_top * 1.9,
+  y_label   = diff_y_top * 2.1,
   y_top     = diff_y_top,
   etiqueta  = p_a_estrellas(diff_pval)
 )
@@ -187,6 +188,7 @@ p_B <- ggplot(df_ind, aes(x = Group, y = diff_effort, color = Group, fill = Grou
   theme_classic(base_size = 12) +
   theme(legend.position = "none")
 
+print(p_B)
 
 ## Composición: A + B (ratio 1.6:1 como en la versión Python)
 fig2 <- (p_A + p_B) +
@@ -195,5 +197,5 @@ fig2 <- (p_A + p_B) +
   theme(plot.tag = element_text(face = "bold", size = 14))
 
 print(fig2)
-ggsave("figure2.png", fig2, width = 9.5, height = 4.2, dpi = 600, bg = "white")
+# ggsave("figure2.png", fig2, width = 9.5, height = 4.2, dpi = 600, bg = "white")
 
