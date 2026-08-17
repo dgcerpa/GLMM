@@ -70,7 +70,7 @@ summary(m3)
 car::Anova(m3, type = "II")
 isSingular(m3)
 performance::r2_nakagawa(m3)
-# anova(m1, m2, m3, m4)
+anova(m1, m2, m3, m4)
 
 
 # (1) Slopes por grupo, dentro de cada agent
