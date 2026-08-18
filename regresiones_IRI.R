@@ -83,57 +83,7 @@ m3 <- lm(diff_effort ~ IRI_Cognitivo * grupo + IRI_Afectivo * grupo, data = df_m
 print(summary(m3))
 
 
-## IRI Preocupación empática * grupo
-m4 <- lm(diff_effort ~ IRI_PreocupacionEmpatica_DIRd * grupo, data = df_mod)
-print(summary(m4))
 
 
-## IRI toma de perspectiva * grupo
-m5 <- lm(diff_effort ~ IRI_TomaPerspectiva_DIRd * grupo, data = df_mod)
-print(summary(m5))
-
-
-
-
-###################################
-## Modelo effort_other sin interacción de grupo
-
-## Modelo 1: IRI total
-m1 <- lm(effort_other ~ IRI_DIRt, data = df_mod)
-print(summary(m1))
-
-
-## Modelo 2: 4 subescalas IRI
-m2 <- lm(effort_other ~ IRI_Fantasia_DIRd + IRI_TomaPerspectiva_DIRd +
-           IRI_PreocupacionEmpatica_DIRd + IRI_IncomodidadPersonal_DIRd,
-         data = df_mod)
-print(summary(m2))
-
-
-## Modelo 3: 2 compuestos (cognitivo / afectivo)
-m3 <- lm(effort_other ~ IRI_Cognitivo + IRI_Afectivo, data = df_mod)
-print(summary(m3))
-
-
-
-
-###################################
-## Modelo effort_other con interacción de grupo
-
-## Modelo 1: IRI total
-m1 <- lm(effort_other ~ IRI_DIRt * grupo, data = df_mod)
-print(summary(m1))
-
-
-## Modelo 2: 4 subescalas IRI
-m2 <- lm(effort_other ~ IRI_Fantasia_DIRd * grupo + IRI_TomaPerspectiva_DIRd * grupo +
-           IRI_PreocupacionEmpatica_DIRd * grupo + IRI_IncomodidadPersonal_DIRd * grupo,
-         data = df_mod)
-print(summary(m2))
-
-
-## Modelo 3: 2 compuestos (cognitivo / afectivo)
-m3 <- lm(effort_other ~ IRI_Cognitivo * grupo + IRI_Afectivo * grupo, data = df_mod)
-print(summary(m3))
 
 

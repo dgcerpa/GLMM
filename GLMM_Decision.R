@@ -49,13 +49,6 @@ m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_dif
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
-## Model 3
-m3.5 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + (1 + c.effort + c.reward|sub),
-            data=alldata.sc,
-            family=binomial,
-            control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
-
-
 ## Model 4
 m4 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_diff + (1|sub),
             data=alldata.sc,

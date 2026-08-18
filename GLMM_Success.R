@@ -61,7 +61,7 @@ summary(m2)
 car::Anova(m2, type = "II")
 isSingular(m2)
 performance::r2_nakagawa(m2)
-# anova(m1, m2, m3, m4)
+anova(m1, m2, m3, m4)
 
 
 
