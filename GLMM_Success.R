@@ -35,11 +35,12 @@ m1 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + Fatigue_diff
                                    optCtrl=list(maxfun=2e5)))
 
 ## Model 2
-m2 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + Fatigue_diff + (1|sub)
-            ,data=alldata.sc_a,
+m2 <- glmer(success ~ c.reward*agent*grupo + agent*c.effort*grupo + Fatigue_diff + (1 + c.effort + c.reward|sub),
+            data=alldata.sc_a,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa",
                                    optCtrl=list(maxfun=2e5)))
+
 
 ## Model 3
 m3 <- glmer(success ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1 + c.reward + c.effort|sub)
@@ -106,48 +107,44 @@ em_agent_en_grupo <- emmeans(m2, ~ agent | grupo, type = "response",
 em_grupo_en_agent <- emmeans(m2, ~ grupo | agent, type = "response",
                              at = list(c.reward = 0, c.effort = 0))
 
-# Puntos por sujeto: tasa empírica de fallo por agente
+
+###################
+## Gráfico probabilidad de fallo con puntos individuales por sujeto
+
+# --- IMPORTANTE: define los puntos individuales UNA sola vez, ANTES de calcular
+#     y_top_all y los corchetes, para que el eje se ajuste a lo que realmente se grafica.
+# Puntos por sujeto: tasa empírica por agente
 puntos_fallo <- alldata.sc_a %>%
   group_by(sub, grupo, agent) %>%
-  summarise(prob_indiv = 1 - mean(success), .groups = "drop") %>%
+  summarise(prob_indiv = mean(success), .groups = "drop") %>%   # <- ojo: ver nota al final
   mutate(grupo = factor(grupo),
          agent = factor(agent))
 
-dodge_off  <- 0.6 / 2 / 2
-y_top_all  <- max(c(df_success_m2$asymp.UCL, puntos_fallo$prob_indiv), na.rm = TRUE)
+dodge_off <- 0.6 / 2 / 2
+
+# y_top_all AHORA usa los mismos puntos que se grafican (no la versión con 1-mean)
+y_top_all <- max(c(df_success_m2$asymp.UCL, puntos_fallo$prob_indiv), na.rm = TRUE)
 
 # Corchetes cortos (dentro del grupo): agent0 - agent1 dentro de cada grupo
 sig_within <- as.data.frame(pairs(em_agent_en_grupo)) %>%
-  mutate(x_left   = as.numeric(as.factor(grupo)) - dodge_off,
-         x_right  = as.numeric(as.factor(grupo)) + dodge_off,
+  mutate(x_left    = as.numeric(as.factor(grupo)) - dodge_off,
+         x_right   = as.numeric(as.factor(grupo)) + dodge_off,
          y_bracket = y_top_all * 1.05,
          y_label   = y_top_all * 1.08,
          etiqueta  = vapply(p.value, p_a_estrellas, character(1)))
 
 # Corchetes largos (entre grupos): grupo0 - grupo1 dentro de cada agente
 sig_between <- as.data.frame(pairs(em_grupo_en_agent)) %>%
-  mutate(x_left   = 1 + ifelse(agent == 0, -dodge_off, dodge_off),
-         x_right  = 2 + ifelse(agent == 0, -dodge_off, dodge_off),
+  mutate(x_left    = 1 + ifelse(agent == 0, -dodge_off, dodge_off),
+         x_right   = 2 + ifelse(agent == 0, -dodge_off, dodge_off),
          y_bracket = ifelse(agent == 0, y_top_all * 1.15, y_top_all * 1.28),
          y_label   = y_bracket + y_top_all * 0.03,
          etiqueta  = vapply(p.value, p_a_estrellas, character(1)))
 
+# Tope del eje: un poco por encima del corchete más alto
+y_axis_top <- max(sig_between$y_label, sig_within$y_label) * 1.05
 
-
-
-
-
-###################
-## Gráfico probabilidad de fallo con puntos individuales por sujeto
-
-# Puntos por sujeto: tasa empírica de fallo (mean(success)) por agente
-puntos_fallo <- alldata.sc_a %>%
-  group_by(sub, grupo, agent) %>%
-  summarise(prob_indiv = mean(success), .groups = "drop") %>%
-  mutate(grupo = factor(grupo),
-         agent = factor(agent))
-
-p1 <- ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
+p1 = ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
   geom_col(position = position_dodge(width = 0.6),
            width = 0.5, color = "black") +
   geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL),
@@ -180,12 +177,15 @@ p1 <- ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
   geom_text(data = sig_between, inherit.aes = FALSE,
             aes(x = (x_left + x_right)/2, y = y_label, label = etiqueta), size = 5) +
   scale_x_discrete(labels = c("0" = "Control", "1" = "Vulnerable")) +
-                    labels = c("0" = "Self", "1" = "Other",
-                    name = "Agente") +
+  scale_fill_manual(values = c("0" = "#1F77B4", "1" = "#D62728"),
+                    labels = c("0" = "Self", "1" = "Other"),
+                    name   = "Agente") +
   scale_color_manual(values = c("0" = "#1F77B4", "1" = "#D62728"),
                      guide = "none") +
   labs(x = "Grupo", y = "Probabilidad de fallo") +
+  # Recorta el espacio vacío: el eje llega justo por encima del corchete más alto
+  coord_cartesian(ylim = c(0, y_axis_top), clip = "off") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
   theme_classic(base_size = 14)
 
 print(p1)
-
