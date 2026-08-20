@@ -179,10 +179,10 @@ p1 = ggplot(df_success_m2, aes(x = grupo, y = prob, fill = agent)) +
   scale_x_discrete(labels = c("0" = "Control", "1" = "Vulnerable")) +
   scale_fill_manual(values = c("0" = "#1F77B4", "1" = "#D62728"),
                     labels = c("0" = "Self", "1" = "Other"),
-                    name   = "Agente") +
+                    name   = "Beneficiary") +
   scale_color_manual(values = c("0" = "#1F77B4", "1" = "#D62728"),
                      guide = "none") +
-  labs(x = "Grupo", y = "Probabilidad de fallo") +
+  labs(x = "Group", y = "Probability of failure") +
   # Recorta el espacio vacío: el eje llega justo por encima del corchete más alto
   coord_cartesian(ylim = c(0, y_axis_top), clip = "off") +
   scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +

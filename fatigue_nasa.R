@@ -122,8 +122,7 @@ p_diff <- ggplot(diff_bar, aes(x = grupo, y = media, fill = grupo)) +
             aes(x = (x_start + x_end) / 2, y = y_label, label = etiqueta), size = 6) +
   scale_fill_manual(values = c("Control" = "#4393C3", "Vulnerable" = "#D6604D"),
                     guide = "none") +
-  labs(x = "", y = "Differences on perceived effort (Hard - Easy)",
-       title = "NASA-TLX Difference between groups") +
+  labs(x = "", y = "Differences on perceived effort (Hard - Easy)") +
   theme_classic(base_size = 12)
 
 cat("NASA_diff:  p =", format.pval(diff_pval, digits = 3),
