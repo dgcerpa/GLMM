@@ -14,8 +14,8 @@ suppressMessages({
 })
 clear()
 
-MAIN_PATH <- "/home/ax/esd-lab/diego-uai/"
-setwd(MAIN_PATH)
+# MAIN_PATH <- "/home/ax/esd-lab/diego-uai/"
+# setwd(MAIN_PATH)
 
 # Data preprocessing
 library("ggplot2")
@@ -39,9 +39,10 @@ group_var <- "group"
 main_vars <- c('diff_effort', "SASS_DIRt", "MAIA_DIRt", "Fatigue_diff")
 
 vars <- main_vars
-data <- read.csv("data/data-all-slopes.csv", header = T) %>% rename(!!sym(group_var) := grupo)
-data$diff_effort <- data$diff_effort1
+data <- read.csv("dataset_final.csv", header = T) %>% rename(!!sym(group_var) := grupo)
+# data$diff_effort <- data$diff_effort1
 # data$diff_effort <- data$diff_effort2
+
 data <- data %>% dplyr::select(group, dplyr::all_of(vars)) %>% dplyr::mutate(dplyr::across(where(is.numeric), as.numeric)) %>% na.omit() %>% select(all_of(c(vars, group_var)))
 
 
@@ -50,10 +51,11 @@ data$M <- data$diff_effort
 data$Y <- data$SASS_DIRt
 data$C <- data$Fatigue_diff
 
-data$G <- factor(data$group)
+data$G <- factor(data$group, levels = c(0, 1), labels = c("Non-vulnerable", "Vulnerable"))
 
-data_low <- subset(data, G=="0")
-data_high <- subset(data, G=="1")
+data_low  <- subset(data, G == "Non-vulnerable")
+data_high <- subset(data, G == "Vulnerable")
+
 
 med_low <- lm(M ~ X + C, data=data_low)
 out_low <- lm(Y ~ X + M + C, data=data_low)
@@ -117,18 +119,10 @@ res_low <- mediation::mediate(med_low, out_low, treat="X", mediator="M", boot=TR
 res_high <- mediation::mediate(med_high, out_high, treat="X", mediator="M", boot=TRUE, sims=nboot)
 
 
+lab_a  <- sprintf("a\nNon-vuln=%.3f\nVuln=%.3f", coef(med_low)["X"],  coef(med_high)["X"])
+lab_b  <- sprintf("b\nNon-vuln=%.3f\nVuln=%.3f", coef(out_low)["M"],  coef(out_high)["M"])
+lab_cp <- sprintf("c_prime\nNon-vuln=%.3f\nVuln=%.3f", coef(out_low)["X"], coef(out_high)["X"])
 
-lab_a <- sprintf("a\nG0=%.3f\nG1=%.3f",
-                 coef(med_low)["X"],
-                 coef(med_high)["X"])
-
-lab_b <- sprintf("b\nG0=%.3f\nG1=%.3f",
-                 coef(out_low)["M"],
-                 coef(out_high)["M"])
-
-lab_cp <- sprintf("c_prime\nG0=%.3f\nG1=%.3f",
-                  coef(out_low)["X"],
-                  coef(out_high)["X"])
 
 
 g <- grViz(sprintf('
@@ -190,12 +184,13 @@ summary(res_high)
 
 
 
-data$G_num <- as.integer(as.character(data$G))
+data$G_num <- as.integer(as.character(data$group))
 set.seed(1)
 med_mod <- lm(M ~ X*G_num + C*G_num,data=data)
 out_mod <- lm(Y ~ X*G_num + M*G_num + C*G_num,data=data)
 
 fit_mod <- mediation::mediate(med_mod,out_mod,treat="X",mediator="M",control.value=0,treat.value=1,boot=TRUE,boot.ci.type="perc",sims=nboot)
+
 
 control_mod <- mediation::mediate(med_mod,out_mod,treat="X",mediator="M",covariates=list(G_num=0),control.value=0,treat.value=1,boot=TRUE,boot.ci.type="perc",sims=nboot)
 

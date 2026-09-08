@@ -102,7 +102,7 @@ pred_grid <- as.data.frame(
 pred_grid$Agent <- factor(as.character(pred_grid$group),
                           levels = c("0", "1"), labels = c("Self", "Other"))
 pred_grid$Group <- factor(as.character(pred_grid$facet),
-                          levels = c("0", "1"), labels = c("Control", "Vulnerable"))
+                          levels = c("0", "1"), labels = c("Non-vulnerable", "Vulnerable"))
 
 p_A <- ggplot(pred_grid, aes(x = x, y = predicted, color = Agent, fill = Agent)) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.20, color = NA) +
@@ -131,16 +131,46 @@ df_ind <- read.csv("dataset_final.csv", stringsAsFactors = FALSE) %>%
   select(sub, grupo, diff_effort) %>%
   filter(!is.na(diff_effort)) %>%
   mutate(Group = factor(grupo, levels = c(0, 1),
-                        labels = c("Control", "Vulnerable")))
+                        labels = c("Non-vulnerable", "Vulnerable")))
 
 
-# Test entre grupos (Welch t-test) para el corchete de significancia
+# ---- Group difference in the prosocial-effort index (diff_effort) ----
+# df_ind ya fue creado arriba (sub, grupo, diff_effort, Group)
+
+# Descriptivos por grupo
+desc <- df_ind %>%
+  group_by(Group) %>%
+  summarise(n = dplyr::n(),
+            M = mean(diff_effort),
+            SD = sd(diff_effort), .groups = "drop")
+print(desc)
+
+# Normalidad del índice (coincide con lo declarado en Methods: KS)
+ks <- ks.test(scale(df_ind$diff_effort), "pnorm")
+cat(sprintf("KS normality: D = %.3f, p = %.3f\n", ks$statistic, ks$p.value))
+
+# Test primario: Welch two-sample t-test (índice normal)
+tt <- t.test(diff_effort ~ Group, data = df_ind)   # var.equal = FALSE por defecto (Welch)
+
+# Cohen's d con SD combinada (pooled)
+n1 <- desc$n[desc$Group == "Non-vulnerable"];    n2 <- desc$n[desc$Group == "Vulnerable"]
+s1 <- desc$SD[desc$Group == "Non-vulnerable"];   s2 <- desc$SD[desc$Group == "Vulnerable"]
+sp <- sqrt(((n1 - 1) * s1^2 + (n2 - 1) * s2^2) / (n1 + n2 - 2))
+cohen_d <- unname(diff(rev(desc$M)) / sp)          # Vulnerable - Control, en unidades de SD pooled
+
+# Robustez no paramétrica (lo que usabas antes en la figura)
+wt <- wilcox.test(diff_effort ~ Group, data = df_ind)
+
+cat(sprintf("Welch t(%.2f) = %.3f, p = %.3f, d = %.2f | Wilcoxon p = %.3f\n",
+            tt$parameter, tt$statistic, tt$p.value, cohen_d, wt$p.value))
+
+# ---- El corchete de significancia de la figura usa el MISMO test (t-test) ----
 p_a_estrellas <- function(p) {
   if (is.na(p)) "" else if (p < 0.001) "***" else if (p < 0.01) "**" else
     if (p < 0.05)  "*"  else if (p < 0.10) "."  else "ns"
 }
 
-diff_pval <- wilcox.test(diff_effort ~ Group, data = df_ind)$p.value
+diff_pval  <- tt$p.value          # <- antes venía de wilcox.test; ahora del Welch t-test
 diff_y_top <- max(df_ind$diff_effort, na.rm = TRUE)
 
 diff_sig <- data.frame(
@@ -175,8 +205,8 @@ p_B <- ggplot(df_ind, aes(x = Group, y = diff_effort, color = Group, fill = Grou
                    y = y_bracket, yend = y_bracket - y_top * 0.03)) +
   geom_text(data = diff_sig, inherit.aes = FALSE,
             aes(x = (x_start + x_end) / 2, y = y_label, label = etiqueta), size = 5) +
-  scale_color_manual(values = c("Control" = COL_CONTROL, "Vulnerable" = COL_VULNERABLE)) +
-  scale_fill_manual(values  = c("Control" = COL_CONTROL, "Vulnerable" = COL_VULNERABLE)) +
+  scale_color_manual(values = c("Non-vulnerable" = COL_CONTROL, "Vulnerable" = COL_VULNERABLE)) +
+  scale_fill_manual(values  = c("Non-vulnerable" = COL_CONTROL, "Vulnerable" = COL_VULNERABLE)) +
   labs(x = NULL, y = "Effort Difference (Other \u2212 Self)") +
   theme_classic(base_size = 12) +
   theme(legend.position = "none")
