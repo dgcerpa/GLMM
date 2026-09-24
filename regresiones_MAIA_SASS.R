@@ -66,7 +66,7 @@ print(summary(m2))
 
 ## Modelo 1: MAIA total
 m1 <- lm(diff_effort ~ MAIA_DIRt * grupo + Fatigue_diff, data = df_mod)
-print(summary(m1))
+print(summary(m1)$coefficients, digits = 6)
 
 trends_maia <- emtrends(m1, ~ grupo, var = "MAIA_DIRt", at = list(grupo = c(0, 1))) # Post-hoc: slopes de MAIA por grupo
 summary(trends_maia, infer = c(TRUE, TRUE)) # Slopes por grupo con IC 95% y test contra 0
@@ -146,12 +146,6 @@ cat(sprintf("Fisher r-to-z:  Z = %.3f, p = %.3f\n", fz$Z, fz$p))
 
 
 
-
-
-
-
-
-
 #################################
 ### SASS
 
@@ -224,9 +218,6 @@ fig3 <- (pA + pB) + plot_layout(guides = "collect") + plot_annotation(tag_levels
 
 print(fig3)
 ggsave("figure3.png", fig3, width = 9.5, height = 4.5, dpi = 600, bg = "white")
-
-
-
 
 
 

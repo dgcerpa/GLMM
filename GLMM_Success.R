@@ -9,6 +9,7 @@ library(lme4)
 library(car)
 library(emmeans)
 library(performance)
+library(rsvg)
 
 
 ######################################
@@ -42,63 +43,77 @@ m4 <- glmer(success ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_diff
             data=alldata.sc_a, family=binomial, control=ctrl)
 
 # Comparacion de modelos
-anova(m1, m2, m3, m4)                 # AIC/BIC: m3 mejor
-sapply(list(m1=m1,m2=m2,m3=m3,m4=m4), isSingular)   # m1 singular; m3 no
-anova(m4, m3)                         # slopes vs intercept (mirrored): chi2(5)=17.74, p=.003
+anova(m1, m2, m3, m4)
+anova(m4, m3)
 
 
 ###################################
-## Modelo reportado: m3
+## Modelo reportado: m4
 
-summary(m3)
-car::Anova(m3, type = "II")
-isSingular(m3)                        # FALSE
-r2_nakagawa(m3)                       # marginal .119, conditional .354
+isSingular(m3) 
+print(summary(m3)$coefficients, digits = 6)
+print(car::Anova(m3, type = "II"), digits = 6)
+r2_nakagawa(m3)
 
 
-######################
-## Post-hoc (descriptivo; la interaccion beneficiary x group NO es significativa)
+isSingular(m4) 
+print(summary(m4)$coefficients, digits = 6)
+print(car::Anova(m4, type = "II"), digits = 6)
+r2_nakagawa(m4)
 
-# grupo dentro de cada beneficiario (odds ratio)
-em_grupo_en_agent <- emmeans(m3, ~ grupo | agent, type = "response",
-                             at = list(c.reward = 0, c.effort = 0))
-pairs(em_grupo_en_agent)
+
+# Tasas de fallo empíricas (ensayos aceptados) por grupo
+alldata.sc_a %>% group_by(grupo) %>%
+  summarise(n_trials = n(), fail_rate = mean(success), .groups = "drop")
 
 
 ###################
-## Figura 5: probabilidad de fallo por grupo y beneficiario (sin corchetes)
+## Figura 5: efecto principal de grupo (promediado sobre beneficiario)
 ###################
 
-LAB_NONVUL <- "Non-vulnerable"        # etiqueta grupo 0 (antes Control)
-LAB_VUL    <- "Vulnerable"
+LAB_NONVUL <- "Non-vulnerable"; LAB_VUL <- "Vulnerable"
+COL_NONVUL <- "#E76F51";        COL_VUL <- "#2A9D8F"   # misma paleta que Fig. 2 y 3
 
-# Grilla grupo x beneficiario (covariables en su media)
-df_success <- as.data.frame(
-  emmeans(m3, ~ grupo * agent, type = "response",
-          at = list(c.reward = 0, c.effort = 0)))
-df_success$grupo <- factor(df_success$grupo)
-df_success$agent <- factor(df_success$agent)
+p_a_estrellas <- function(p) {
+  if (is.na(p)) "" else if (p < 0.001) "***" else if (p < 0.01) "**" else
+    if (p < 0.05) "*" else if (p < 0.10) "." else "ns"
+}
 
-# Puntos por sujeto: tasa empirica de fallo por beneficiario
-puntos_fallo <- alldata.sc_a %>%
-  group_by(sub, grupo, agent) %>%
+# Probabilidad estimada por grupo (promedio sobre agent; effort y reward en su media)
+df_grp <- as.data.frame(
+  emmeans(m4, ~ grupo, type = "response", at = list(c.reward = 0, c.effort = 0)))
+df_grp$Group <- factor(df_grp$grupo, levels = c(0, 1), labels = c(LAB_NONVUL, LAB_VUL))
+
+# Tasa empírica de fallo por sujeto (todos los ensayos aceptados)
+pts <- alldata.sc_a %>%
+  group_by(sub, grupo) %>%
   summarise(prob_indiv = mean(success), .groups = "drop") %>%
-  mutate(grupo = factor(grupo), agent = factor(agent))
+  mutate(Group = factor(grupo, levels = c(0, 1), labels = c(LAB_NONVUL, LAB_VUL)))
 
-p1 <- ggplot(df_success, aes(x = grupo, y = prob, fill = agent)) +
-  geom_col(position = position_dodge(width = 0.6), width = 0.5, color = "black") +
-  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL),
-                width = 0.15, color = "black", position = position_dodge(width = 0.6)) +
-  geom_point(data = puntos_fallo, inherit.aes = FALSE,
-             aes(x = grupo, y = prob_indiv, color = agent),
-             position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.6),
-             alpha = 0.55, size = 1.8, show.legend = FALSE) +
-  scale_x_discrete(labels = c("0" = LAB_NONVUL, "1" = LAB_VUL)) +
-  scale_fill_manual(values = c("0" = "#1F77B4", "1" = "#D62728"),
-                    labels = c("0" = "Self", "1" = "Other"), name = "Beneficiary") +
-  scale_color_manual(values = c("0" = "#1F77B4", "1" = "#D62728"), guide = "none") +
-  labs(x = "Group", y = "Probability of failure") +
+# Corchete: p del efecto principal de grupo (Type II), el mismo que se reporta en el texto
+p_grupo <- car::Anova(m4, type = "II")["grupo", "Pr(>Chisq)"]
+y_top   <- max(pts$prob_indiv, na.rm = TRUE)
+sig <- data.frame(x1 = 1, x2 = 2, y = y_top * 1.08, yl = y_top * 1.12,
+                  lab = p_a_estrellas(p_grupo))
+
+p5 <- ggplot(df_grp, aes(x = Group, y = prob, fill = Group)) +
+  geom_col(width = 0.5, color = "black", alpha = 0.85) +
+  geom_errorbar(aes(ymin = asymp.LCL, ymax = asymp.UCL), width = 0.15) +
+  geom_jitter(data = pts, inherit.aes = FALSE,
+              aes(x = Group, y = prob_indiv, color = Group),
+              width = 0.08, alpha = 0.6, size = 1.8) +
+  geom_segment(data = sig, inherit.aes = FALSE, aes(x = x1, xend = x2, y = y, yend = y)) +
+  geom_segment(data = sig, inherit.aes = FALSE, aes(x = x1, xend = x1, y = y, yend = y - y_top * 0.02)) +
+  geom_segment(data = sig, inherit.aes = FALSE, aes(x = x2, xend = x2, y = y, yend = y - y_top * 0.02)) +
+  geom_text(data = sig, inherit.aes = FALSE, aes(x = 1.5, y = yl, label = lab), size = 6) +
+  scale_fill_manual(values  = c(COL_NONVUL, COL_VUL), guide = "none") +
+  scale_color_manual(values = c(COL_NONVUL, COL_VUL), guide = "none") +
+  labs(x = NULL, y = "Probability of failure") +
   theme_classic(base_size = 14)
 
-print(p1)
-ggsave("figure5.png", p1, width = 7, height = 5, dpi = 300, bg = "white")
+print(p5)
+ggsave("figure5.svg", p5, width = 5, height = 5, dpi = 300, bg = "white")
+
+
+
+

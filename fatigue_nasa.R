@@ -133,3 +133,37 @@ p_diff <- ggplot(diff_bar, aes(x = grupo, y = media, fill = grupo)) +
 
 print(p_diff)
 ggsave("figure4.png", p_diff, width = 6, height = 6, dpi = 300, bg = "white")
+
+
+
+
+
+
+
+
+
+
+## 5) Test explícito de la interacción: t entre grupos sobre el difference score (hard - easy)
+##    En un ANOVA mixto 2x2, la interacción difficulty x group equivale exactamente
+##    a un t de Student (varianzas iguales) sobre NASA_diff: t^2 = F, mismo p.
+
+cat("\n== Difference score (hard - easy) entre grupos ==\n")
+
+# Student (equivalente exacto a la interacción del ANOVA)
+tt_diff <- t.test(NASA_diff ~ grupo, data = wide, var.equal = TRUE)
+print(tt_diff)
+cat(sprintf("Chequeo equivalencia: t^2 = %.3f vs F interacción = %.3f\n",
+            unname(tt_diff$statistic)^2,
+            aov_nasa$anova_table["grupo:difficulty", "F"]))
+
+# Welch (robustez ante varianzas desiguales)
+tw_diff <- t.test(NASA_diff ~ grupo, data = wide)   # var.equal = FALSE por defecto
+print(tw_diff)
+
+# Diferencia de medias NV - SV con IC 95% (del Student)
+cat(sprintf("Mean difference (NV - SV) = %.2f, 95%% CI [%.2f, %.2f]\n",
+            unname(tt_diff$estimate[1] - tt_diff$estimate[2]),
+            tt_diff$conf.int[1], tt_diff$conf.int[2]))
+
+# Cohen's d (SD pooled): ya calculado arriba en la sección 4
+cat(sprintf("Cohen's d = %.2f\n", (mean(x0) - mean(x1)) / sp))

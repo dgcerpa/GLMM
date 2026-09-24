@@ -58,7 +58,6 @@ m4 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_dif
 
 
 # Summary of models
-
 summary(m3)
 car::Anova(m3, type = "II")
 isSingular(m3)
@@ -69,14 +68,15 @@ anova(m1, m2, m3, m4)
 # (1) Slopes por grupo, dentro de cada agent
 z_grupo_en_agent <- emtrends(m3, ~ grupo | agent, var = "c.effort")
 summary(z_grupo_en_agent, infer = c(TRUE, TRUE))
-pairs(z_grupo_en_agent, adjust = "fdr")
+pairs(z_grupo_en_agent, adjust = "none")
+test(pairs(z_grupo_en_agent), by = NULL, adjust = "fdr")
+
 
 # (2) Slopes por agent, dentro de cada grupo
 z_agent_en_grupo <- emtrends(m3, ~ agent | grupo, var = "c.effort")
 summary(z_agent_en_grupo, infer = c(TRUE, TRUE))
-pairs(z_agent_en_grupo, adjust = "fdr")
-
-
+pairs(z_agent_en_grupo, adjust = "none")
+test(pairs(z_agent_en_grupo), by = NULL, adjust = "fdr")
 
 
 ###################

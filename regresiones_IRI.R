@@ -87,3 +87,12 @@ print(summary(m3))
 
 
 
+df_mod$Fatigue_diff <- as.numeric(df$Fatigue_diff)
+mA <- lm(diff_effort ~ IRI_DIRt * grupo + Fatigue_diff, data = df_mod)
+mB <- lm(diff_effort ~ IRI_Cognitivo * grupo + IRI_Afectivo * grupo + Fatigue_diff, data = df_mod)
+print(car::Anova(mA, type = "II"), digits = 6)   # IRI_DIRt:grupo p ≈ 0.4845
+print(car::Anova(mB, type = "II"), digits = 6)   # IRI_Afectivo:grupo F ≈ 0.00447
+emtrends(mB, ~ grupo, var = "IRI_Cognitivo", at = list(grupo = c(0, 1))) |>
+  summary(infer = c(TRUE, TRUE))                 # NV p ≈ .010; SV p ≈ .250
+
+
