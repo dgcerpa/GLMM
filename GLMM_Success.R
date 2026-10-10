@@ -19,7 +19,7 @@ alldata.sc <- subset(alldata.sc, select = -c(X))
 
 # Solo trials aceptados
 alldata.sc_a <- subset(alldata.sc, decision == 1)
-alldata.sc_a$Fatigue_diff <- as.numeric(scale(alldata.sc_a$Fatigue_diff))
+#alldata.sc_a$Fatigue_diff <- as.numeric(scale(alldata.sc_a$Fatigue_diff))
 ctrl <- glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
 
 
