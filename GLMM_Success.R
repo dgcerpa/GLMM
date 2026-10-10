@@ -19,7 +19,7 @@ alldata.sc <- subset(alldata.sc, select = -c(X))
 
 # Solo trials aceptados
 alldata.sc_a <- subset(alldata.sc, decision == 1)
-
+alldata.sc_a$Fatigue_diff <- as.numeric(scale(alldata.sc_a$Fatigue_diff))
 ctrl <- glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
 
 
@@ -28,7 +28,7 @@ ctrl <- glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
 
 ## Model 1: 4-vias + slopes
 m1 <- glmer(success ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1 + c.effort + c.reward|sub),
-            data=alldata.sc_a, family=binomial, control=ctrl)
+           data=alldata.sc_a, family=binomial, control=ctrl)
 
 ## Model 2: 4-vias + intercept
 m2 <- glmer(success ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1|sub),
@@ -44,23 +44,22 @@ m4 <- glmer(success ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_diff
 
 # Comparacion de modelos
 anova(m1, m2, m3, m4)
-anova(m4, m3)
 
 
 ###################################
 ## Modelo reportado: m4
 
-isSingular(m3) 
-print(summary(m3)$coefficients, digits = 6)
-print(car::Anova(m3, type = "II"), digits = 6)
-r2_nakagawa(m3)
-
-
-isSingular(m4) 
+isSingular(m1)
+isSingular(m2)
+isSingular(m3)
+isSingular(m4)
 print(summary(m4)$coefficients, digits = 6)
 print(car::Anova(m4, type = "II"), digits = 6)
 r2_nakagawa(m4)
 
+et <- emtrends(m4, ~ grupo, var = "c.effort")   # promediado sobre agent
+summary(et, infer = c(TRUE, TRUE))
+pairs(et)
 
 # Tasas de fallo empíricas (ensayos aceptados) por grupo
 alldata.sc_a %>% group_by(grupo) %>%
@@ -112,7 +111,7 @@ p5 <- ggplot(df_grp, aes(x = Group, y = prob, fill = Group)) +
   theme_classic(base_size = 14)
 
 print(p5)
-ggsave("figure5.svg", p5, width = 5, height = 5, dpi = 300, bg = "white")
+ggsave("figure5.png", p5, width = 5, height = 5, dpi = 300, bg = "white")
 
 
 
