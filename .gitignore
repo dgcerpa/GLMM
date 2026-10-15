@@ -63,9 +63,6 @@ rsconnect/
 # Carpetas de datos
 Datos/
 
-# Scripts que no se usan
-Scripts_Ignorados/
-
 # Credenciales / configuracion sensible
 *.env
 secrets.*

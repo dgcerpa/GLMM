@@ -1,101 +1,103 @@
 
-
-## GLMM: General Linear Mixed Models
-# Diego Garrido Cerpa - Viña del Mar 2026
+# GLMM: Generalized Linear Mixed Models of choice (decision)
 
 
-## Librerías
+###############################################################################
+# Clean Environment
+
+rm(list = ls())
+options(scipen = 999)
+
+
+###############################################################################
+# Libraries
 
 library(tidyverse)
-library(readxl)
 library(lme4)
-library(car)
-library(ggeffects)
-library(ggcorrplot)
-library(corrplot)
 library(emmeans)
-library(performance)
+library(ggeffects)
 library(patchwork)
-library(ggplot2)
+library(car)
 
 
-######################################################
-## Import Data
+###############################################################################
+# Import Data
 
 alldata.sc <- read.csv("data_glmm_filtered.csv", header = T)
-alldata.sc <- subset(alldata.sc, select = -c(X))
 
 
-###################################
-### GLMM
+###############################################################################
+# GLMM
 
-## Model 1
+## Model 1: four-way interaction + random slopes
 m1 <- glmer(decision ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1 + c.effort + c.reward|sub),
             data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
-
-## Model 2
+## Model 2: four-way interaction + random intercept
 m2 <- glmer(decision ~ c.reward*agent*c.effort*grupo + Fatigue_diff + (1|sub),
             data = alldata.sc,
             family = binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=2e5)))
 
-
-## Model 3
+## Model 3: mirrored (reward*agent*grupo + effort*agent*grupo) + random slopes (reported)
 m3 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_diff + (1 + c.effort + c.reward|sub),
             data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
-## Model 4
+## Model 4: mirrored + random intercept
 m4 <- glmer(decision ~ c.reward*agent*grupo + c.effort*agent*grupo + Fatigue_diff + (1|sub),
             data=alldata.sc,
             family=binomial,
             control = glmerControl(optimizer = "bobyqa", optCtrl=list(maxfun=2e5)))
 
-
-
-# Summary of models
-summary(m3)
-print(car::Anova(m3, type = "II"), digits = 6)
+## Singular fits
+isSingular(m1)
+isSingular(m2)
 isSingular(m3)
+isSingular(m4)
+
+## Summary of the reported model (m3)
+summary(m3)
+car::Anova(m3, type = "II")
 performance::r2_nakagawa(m3)
+anova(m3)
+
+## Model comparison
 anova(m1, m2, m3, m4)
 
 
-# (1) Slopes por grupo, dentro de cada agent
+###############################################################################
+# Post-hoc: effort slopes (emtrends)
+
+## (1) Slopes by group, within each agent
 z_grupo_en_agent <- emtrends(m3, ~ grupo | agent, var = "c.effort")
 summary(z_grupo_en_agent, infer = c(TRUE, TRUE))
 pairs(z_grupo_en_agent, adjust = "none")
 test(pairs(z_grupo_en_agent), by = NULL, adjust = "fdr")
 
-
-# (2) Slopes por agent, dentro de cada grupo
+## (2) Slopes by agent, within each group
 z_agent_en_grupo <- emtrends(m3, ~ agent | grupo, var = "c.effort")
 summary(z_agent_en_grupo, infer = c(TRUE, TRUE))
 pairs(z_agent_en_grupo, adjust = "none")
 test(pairs(z_agent_en_grupo), by = NULL, adjust = "fdr")
 
 
-###################
-# Gráfico Post-Hoc
-###################################
-## Figura 2: predicted probabilities of decision (Panel A) + raincloud (Panel B)
+###############################################################################
+# Figure 2, Panel A: predicted probabilities of decision (m3) by group and agent
 
-# Paleta (igual a la de figuras_python.py)
+## Color palette
 COL_SELF       <- "#8AA624"
 COL_OTHER      <- "#6A4C93"
 COL_CONTROL    <- "#E76F51"
 COL_VULNERABLE <- "#2A9D8F"
 
-
-## Panel A: curvas predichas de decisión (de m3) por grupo y agente
-
-# Ticks del eje X: se muestran los niveles 2, 3, 4 (recuperados desde los z-scores)
+## X-axis ticks: effort levels 2, 3, 4 (recovered from the z-scores)
 z_levels <- sort(unique(alldata.sc$c.effort))[c(2, 3, 4)]
 
+## Predicted curves
 pred_grid <- as.data.frame(
   ggpredict(m3, terms = c("c.effort [n=100]", "agent", "grupo"))
 )
@@ -104,6 +106,7 @@ pred_grid$Agent <- factor(as.character(pred_grid$group),
 pred_grid$Group <- factor(as.character(pred_grid$facet),
                           levels = c("0", "1"), labels = c("Non-vulnerable", "Vulnerable"))
 
+## Plot
 p_A <- ggplot(pred_grid, aes(x = x, y = predicted, color = Agent, fill = Agent)) +
   geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.20, color = NA) +
   geom_line(linewidth = 1.4) +
@@ -123,21 +126,17 @@ p_A <- ggplot(pred_grid, aes(x = x, y = predicted, color = Agent, fill = Agent))
         plot.title = element_text(face = "bold", hjust = 0.5))
 
 
+###############################################################################
+# Group difference in the prosocial-effort index (diff_effort)
 
-## Panel B: raincloud de diff_effort por grupo
-# Usa los slopes individuales de post_hoc_v2.csv (generado por Limpieza_Datos.R)
-
+## Individual slopes from dataset_final.csv (generated by Limpieza_Datos.R)
 df_ind <- read.csv("dataset_final.csv", stringsAsFactors = FALSE) %>%
   select(sub, grupo, diff_effort) %>%
   filter(!is.na(diff_effort)) %>%
   mutate(Group = factor(grupo, levels = c(0, 1),
                         labels = c("Non-vulnerable", "Vulnerable")))
 
-
-# ---- Group difference in the prosocial-effort index (diff_effort) ----
-# df_ind ya fue creado arriba (sub, grupo, diff_effort, Group)
-
-# Descriptivos por grupo
+## Descriptives by group
 desc <- df_ind %>%
   group_by(Group) %>%
   summarise(n = dplyr::n(),
@@ -145,32 +144,37 @@ desc <- df_ind %>%
             SD = sd(diff_effort), .groups = "drop")
 print(desc)
 
-# Normalidad del índice (coincide con lo declarado en Methods: KS)
+## Normality of the index (Kolmogorov-Smirnov test)
 ks <- ks.test(scale(df_ind$diff_effort), "pnorm")
 cat(sprintf("KS normality: D = %.3f, p = %.3f\n", ks$statistic, ks$p.value))
 
-# Test primario: Welch two-sample t-test (índice normal)
-tt <- t.test(diff_effort ~ Group, data = df_ind)   # var.equal = FALSE por defecto (Welch)
+## Primary test: Welch two-sample t-test
+tt <- t.test(diff_effort ~ Group, data = df_ind)   # var.equal = FALSE by default (Welch)
 
-# Cohen's d con SD combinada (pooled)
+## Cohen's d with pooled SD
 n1 <- desc$n[desc$Group == "Non-vulnerable"];    n2 <- desc$n[desc$Group == "Vulnerable"]
 s1 <- desc$SD[desc$Group == "Non-vulnerable"];   s2 <- desc$SD[desc$Group == "Vulnerable"]
 sp <- sqrt(((n1 - 1) * s1^2 + (n2 - 1) * s2^2) / (n1 + n2 - 2))
-cohen_d <- unname(diff(rev(desc$M)) / sp)          # Vulnerable - Control, en unidades de SD pooled
+cohen_d <- unname(diff(rev(desc$M)) / sp)          # Non-vulnerable - Vulnerable, in pooled SD units
 
-# Robustez no paramétrica (lo que usabas antes en la figura)
+## Non-parametric robustness check (Wilcoxon)
 wt <- wilcox.test(diff_effort ~ Group, data = df_ind)
 
 cat(sprintf("Welch t(%.2f) = %.3f, p = %.3f, d = %.2f | Wilcoxon p = %.3f\n",
             tt$parameter, tt$statistic, tt$p.value, cohen_d, wt$p.value))
 
-# ---- El corchete de significancia de la figura usa el MISMO test (t-test) ----
+
+###############################################################################
+# Figure 2, Panel B: raincloud of diff_effort by group, and final composition
+
+## Convert p-values to significance stars
 p_a_estrellas <- function(p) {
   if (is.na(p)) "" else if (p < 0.001) "***" else if (p < 0.01) "**" else
     if (p < 0.05)  "*"  else if (p < 0.10) "."  else "ns"
 }
 
-diff_pval  <- tt$p.value          # <- antes venía de wilcox.test; ahora del Welch t-test
+## Significance bracket (same Welch t-test)
+diff_pval  <- tt$p.value          # <- Welch t-test p-value
 diff_y_top <- max(df_ind$diff_effort, na.rm = TRUE)
 
 diff_sig <- data.frame(
@@ -186,8 +190,7 @@ cat("diff_effort Control vs Vulnerable:  p =",
     format.pval(diff_pval, digits = 3),
     " (", p_a_estrellas(diff_pval), ")\n", sep = "")
 
-
-
+## Plot
 p_B <- ggplot(df_ind, aes(x = Group, y = diff_effort, color = Group, fill = Group)) +
   geom_violin(alpha = 0.35, trim = FALSE, width = 0.7, linewidth = 0.4) +
   geom_boxplot(width = 0.12, alpha = 0.85, outlier.shape = NA,
@@ -213,12 +216,12 @@ p_B <- ggplot(df_ind, aes(x = Group, y = diff_effort, color = Group, fill = Grou
 
 print(p_B)
 
-## Composición: A + B (ratio 1.6:1 como en la versión Python)
+## Composition: A + B (1.6:1 width ratio)
 fig2 <- (p_A + p_B) +
   plot_layout(widths = c(1.6, 1)) +
   plot_annotation(tag_levels = "A") &
   theme(plot.tag = element_text(face = "bold", size = 14))
 
+## Print and save figure
 print(fig2)
 ggsave("figure2.png", fig2, width = 9.5, height = 4.2, dpi = 600, bg = "white")
-
