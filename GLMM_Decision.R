@@ -27,6 +27,16 @@ alldata.sc <- read.csv("data_glmm_filtered.csv", header = T)
 
 
 ###############################################################################
+## Statistical power
+
+library(pwr)
+
+## Sensitivity analysis: minimum detectable d for the between-group difference
+## in the prosocial-effort index, given the final sample (n = 41 NV, 43 SV)
+pwr.t2n.test(n1 = 41, n2 = 43, sig.level = .05, power = .80)
+
+
+###############################################################################
 # GLMM
 
 ## Model 1: four-way interaction + random slopes
