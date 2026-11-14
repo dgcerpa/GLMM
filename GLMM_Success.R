@@ -12,6 +12,7 @@ library(emmeans)
 library(performance)
 library(car)
 library(patchwork)
+library(svglite)
 
 
 ###############################################################################
@@ -201,9 +202,8 @@ fig5 <- (p5A + p5B) +
 
 ## Print and save figure
 print(fig5)
-ggsave("figure5A.png", p5A, width = 5, height = 4.5, dpi = 600, bg = "white")
-ggsave("figure5B.png", p5B, width = 5, height = 4.5, dpi = 600, bg = "white")
-ggsave("figure5.png", fig5, width = 9.5, height = 4.5, dpi = 600, bg = "white")
-
+ggsave("figure5A.svg", p5A, width = 5, height = 4.5, dpi = 600, bg = "white")
+ggsave("figure5B.svg", p5B, width = 5, height = 4.5, dpi = 600, bg = "white")
+ggsave("figure5.svg", fig5, width = 9.5, height = 4.5, dpi = 600, bg = "white")
 
 
