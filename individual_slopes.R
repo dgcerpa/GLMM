@@ -102,7 +102,3 @@ df_final$diff_effort  <- df_final$effort_other - df_final$effort_self
 ## Save final dataset
 write.csv(df_final, "dataset_final.csv", row.names = FALSE)
 
-
-
-
-
