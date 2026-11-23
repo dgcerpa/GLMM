@@ -1,7 +1,6 @@
 
 # GLMM: Generalized Linear Mixed Models of choice (decision)
 
-
 ###############################################################################
 # Clean Environment
 
@@ -106,7 +105,7 @@ COL_CONTROL    <- "#E76F51"
 COL_VULNERABLE <- "#2A9D8F"
 
 ## X-axis ticks: effort levels 2, 3, 4 (recovered from the z-scores)
-z_levels <- sort(unique(alldata.sc$c.effort))[c(2, 3, 4)]
+z_levels <- sort(unique(alldata.sc$c.effort))
 
 ## Predicted curves
 pred_grid <- as.data.frame(
@@ -124,11 +123,12 @@ p_A <- ggplot(pred_grid, aes(x = x, y = predicted, color = Agent, fill = Agent))
   facet_wrap(~ Group) +
   scale_color_manual(values = c("Self" = COL_SELF, "Other" = COL_OTHER)) +
   scale_fill_manual(values  = c("Self" = COL_SELF, "Other" = COL_OTHER)) +
-  scale_x_continuous(breaks = z_levels, labels = c("2", "3", "4")) +
+  scale_x_continuous(breaks = z_levels, labels = c("1", "2", "3", "4"))  +
   scale_y_continuous(breaks = seq(0.70, 1.00, 0.10),
                      labels = scales::percent_format(accuracy = 1),
                      limits = c(0.70, 1.00)) +
   labs(x = NULL, y = "P(accept work offer)",
+       color = "Beneficiary", fill = "Beneficiary",
        title = "Predicted probabilities of decision") +
   theme_classic(base_size = 12) +
   theme(legend.position = "bottom",
@@ -235,5 +235,5 @@ fig2 <- (p_A + p_B) +
 
 ## Print and save figure
 print(fig2)
-ggsave("figure2.svg", fig2, width = 9.5, height = 4.2, dpi = 600, bg = "white")
+ggsave("figure2.png", fig2, width = 9.5, height = 4.2, dpi = 600, bg = "white")
 
